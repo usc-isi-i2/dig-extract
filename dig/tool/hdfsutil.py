@@ -1,6 +1,3 @@
-import azure
-from azure.storage import *
-
 from azure import *
 from azure.storage import *
 import os
@@ -10,11 +7,13 @@ from util import elapsed
 from glob import iglob
 import subprocess
 import shutil
-from hadoop.io.SequenceFile import CompressionType
+# from hadoop.io.SequenceFile import CompressionType
 from hadoop.io import Text
 from hadoop.io import SequenceFile
 import datetime
 import simplejson as json
+
+# corresponds to r25784 from memex/toddler svn repository
 
 # The following code creates a BlobService object using the storage
 # account name and account key. Replace 'myaccount' and 'mykey' with
@@ -92,7 +91,7 @@ CRAWLAGENTS= ["churl",
 
 DATESTAMPS = [ds for ds in util.genDatestamps(start=20140101, end=20140201)]
 DATESTAMPS = [ds for ds in util.genDatestamps(start=20140101, end=20140103)]
-DATESTAMPS = [ds for ds in util.genDatestamps(start=20140101, end=20140101)]
+DATESTAMPS = [ds for ds in util.genDatestamps(start=20130101, end=20141231)]
 
 def downloadBackpageAds(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
     start = datetime.datetime.now()
@@ -258,7 +257,7 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint):
                             try:
                                 bs.put_block_blob_from_path(mycontainer, destination, pathname,
                                                             x_ms_blob_content_type='text/html')
-                            except azure.WindowsAzureError as e:
+                            except WindowsAzureError as e:
                                 print >> sys.stderr, "Azure failure [%r], skipping"
                             i += 1
                             if i%100 == 0:
@@ -309,7 +308,7 @@ def listAll(prefix=None, outstream=sys.stdout):
     while True:
         try:
             blobs = bs.list_blobs(mycontainer, maxresults=5000, marker=next_marker, prefix=prefix)
-        except azure.WindowsAzureError as e:
+        except WindowsAzureError as e:
             print >> sys.stderr, "Failed to fetch [%s], exiting" % prefix
             break
         next_marker = blobs.next_marker
@@ -319,7 +318,7 @@ def listAll(prefix=None, outstream=sys.stdout):
         for blob in blobs:
             try:
                 print >> outstream, blob.url
-            except azure.WindowsAzureError as e:
+            except WindowsAzureError as e:
                 print >> sys.stderr, "Failed on %s, skipping" % blob
         if next_marker is None:
             break
@@ -342,7 +341,7 @@ def genBlobs(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
             while True:
                 try:
                     blobs = bs.list_blobs(mycontainer, maxresults=5000, marker=next_marker, prefix=prefix)
-                except azure.WindowsAzureError as e:
+                except WindowsAzureError as e:
                     print >> sys.stderr, "Failed to fetch [%s], exiting" % prefix
                     break
                 next_marker = blobs.next_marker
@@ -350,7 +349,7 @@ def genBlobs(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
                 for blob in blobs:
                     try:
                         yield blob
-                    except azure.WindowsAzureError as e:
+                    except WindowsAzureError as e:
                         print >> sys.stderr, "Failed on %s, skipping" % blob
                 if next_marker is None:
                     break
@@ -373,21 +372,56 @@ def genUrls(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
 #     writeData(writer)
 #     writer.close()
 
-def materializeUrls(urls, destFile):
+def materializeUrls(urls, destFile, sequence=True):
     start = datetime.datetime.now()
-    writer = SequenceFile.createWriter(destFile, Text, Text)
+    if sequence:
+        writer = SequenceFile.createWriter(destFile, Text, Text)
+    else:
+        writer = open(destFile, 'w')
     for url in urls:
-        key = Text()
-        key.set(url)
-        value = Text()
-        # I'm not at all sure why we would want to decode, not encode here
-        # this is the only thing that worked
-        value.set(Text.decode(json.dumps(util.chunkedFetchUrlText(url))))
-        writer.append(key, value)
+        if sequence:
+            key = Text()
+            key.set(url)
+            value = Text()
+            # I'm not at all sure why we would want to decode, not encode here
+            # this is the only thing that worked
+            value.set(Text.decode(json.dumps(util.chunkedFetchUrlText(url))))
+            writer.append(key, value)
+        else:
+            key = url
+            value = json.dumps(util.chunkedFetchUrlText(url))
+            line = "%s\t%s" % (url, value)
+            print >> writer, line
     writer.close()
     end = datetime.datetime.now()
     delta = end - start
     print >> sys.stderr, "ELAPSED materializeUrls is %s" % elapsed(delta)
+
+def materializeTextUrls(urls, destFile, sequence=True):
+    start = datetime.datetime.now()
+    if sequence:
+        writer = SequenceFile.createWriter(destFile, Text, Text)
+    else:
+        writer = open(destFile, 'w')
+    for url in urls:
+        if sequence:
+            key = Text()
+            key.set(url)
+            value = Text()
+            # I'm not at all sure why we would want to decode, not encode here
+            # this is the only thing that worked
+            value.set(Text.decode(json.dumps(util.chunkedFetchUrlText(url))))
+            writer.append(key, value)
+        else:
+            key = url
+            value = json.dumps(util.chunkedFetchUrlText(url))
+            line = "%s\t%s" % (url, value)
+            print >> writer, line
+    writer.close()
+    end = datetime.datetime.now()
+    delta = end - start
+    print >> sys.stderr, "ELAPSED materializeUrls is %s" % elapsed(delta)
+
 
 
 testUrls=["https://karmadigstorage.blob.core.windows.net/arch/churl/20140101/bellingham.backpage.com/FemaleEscorts/120-morning-special-dont-miss-this-25/14910841",
@@ -397,6 +431,9 @@ testUrls=["https://karmadigstorage.blob.core.windows.net/arch/churl/20140101/bel
           "https://karmadigstorage.blob.core.windows.net/arch/churl/20140101/bellingham.backpage.com/FemaleEscorts/are-you-looking-for-something-with-no-strings-attached/12995854",
           "https://karmadigstorage.blob.core.windows.net/arch/churl/20140101/bellingham.backpage.com/FemaleEscorts/baby-girl-has-arrived-28/15056065",
           "https://karmadigstorage.blob.core.windows.net/arch/churl/20140101/bellingham.backpage.com/FemaleEscorts/back-and-in-bel-100180-360-389-1455-22/14951600"]
+
+# nwUrls = []
+from dig.tool.data.nwurls import nwUrls
 
 # materializeUrls(testUrls, "/mnt/resource/arch/test1.seq")
 # materializeUrls(genUrls(datestamps=[20140101]), "/mnt/resource/arch/20140101.seq")
@@ -431,3 +468,4 @@ def matByDate(datestamp):
         # delta = end - start
         # logger.info("ELAPSED extract [%s] is %s", self.source, elapsed(delta))
     
+print WindowsAzureError
