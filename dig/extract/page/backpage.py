@@ -3,7 +3,7 @@
 # Filename: extract.py
 
 '''
-wat.escort.extract.backpage
+dig.extract.page.backpage
 @author: Andrew Philpot
 @version 4.2
 '''

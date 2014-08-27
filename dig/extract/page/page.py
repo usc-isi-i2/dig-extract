@@ -3,7 +3,7 @@
 # Filename: page.py
 
 '''
-wat.escort.extract.page
+dig.extract.page.page
 @author: Andrew Philpot
 @version 4.0
 '''
