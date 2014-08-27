@@ -3,7 +3,7 @@ from azure.storage import *
 import os
 import urllib2
 import util
-from util import elapsed
+from util import elapsed, genDatestamps
 from glob import iglob
 import subprocess
 import shutil
@@ -12,6 +12,7 @@ from hadoop.io import Text
 from hadoop.io import SequenceFile
 import datetime
 import simplejson as json
+import re
 
 # corresponds to r25784 from memex/toddler svn repository
 
@@ -89,9 +90,11 @@ CRAWLAGENTS= ["churl",
               "wat035",
               "wat036"]
 
-DATESTAMPS = [ds for ds in util.genDatestamps(start=20140101, end=20140201)]
-DATESTAMPS = [ds for ds in util.genDatestamps(start=20140101, end=20140103)]
-DATESTAMPS = [ds for ds in util.genDatestamps(start=20130101, end=20141231)]
+DATESTAMPS = [ds for ds in genDatestamps(start=20140101, end=20140201)]
+DATESTAMPS = [ds for ds in genDatestamps(start=20140101, end=20140103)]
+DATESTAMPS = [ds for ds in genDatestamps(start=20130101, end=20141231)]
+
+SITEKEYS = True
 
 def downloadBackpageAds(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
     start = datetime.datetime.now()
@@ -332,7 +335,7 @@ def listByDatestamp(datestamp, crawlAgents=CRAWLAGENTS):
             total += size
     return total
 
-def genBlobs(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
+def genBlobs(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, sitekeys=SITEKEYS):
     "List the matching blobs in container"
     for datestamp in datestamps:
         for crawlAgent in crawlAgents:
@@ -348,29 +351,21 @@ def genBlobs(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
                 # we fetched the blobs, now iterate over it
                 for blob in blobs:
                     try:
-                        yield blob
+                        if sitekeys==[]:
+                            yield blob
+                        else:
+                            m = re.match(r"""https://karmadigstorage.blob.core.windows.net/arch/(.*)/(\d{8})/(.*).backpage.com""", blob.url)
+                            sitekey = m.group(3)
+                            if sitekey in sitekeys:
+                                yield blob
                     except WindowsAzureError as e:
                         print >> sys.stderr, "Failed on %s, skipping" % blob
                 if next_marker is None:
                     break
 
-def genUrls(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
-    for blob in genBlobs(datestamps=datestamps, crawlAgents=crawlAgents):
+def genUrls(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, sitekeys=SITEKEYS):
+    for blob in genBlobs(datestamps=datestamps, crawlAgents=crawlAgents, sitekeys=sitekeys):
         yield blob.url
-
-# def writeData(writer):
-#     key = Text()
-#     value = Text()
-
-#     key.set('Key')
-#     value.set('Value')
-
-#     writer.append(key, value)
-
-# if __name__ == '__main__':
-#     writer = SequenceFile.createWriter('test.seq', Text, Text)
-#     writeData(writer)
-#     writer.close()
 
 def materializeUrls(urls, destFile, sequence=True):
     start = datetime.datetime.now()
@@ -435,29 +430,29 @@ testUrls=["https://karmadigstorage.blob.core.windows.net/arch/churl/20140101/bel
 # nwUrls = []
 from dig.tool.data.nwurls import nwUrls
 
-# materializeUrls(testUrls, "/mnt/resource/arch/test1.seq")
-# materializeUrls(genUrls(datestamps=[20140101]), "/mnt/resource/arch/20140101.seq")
+# materializeUrls(testUrls, "/mnt/resource/staging/test1.seq")
+# materializeUrls(genUrls(datestamps=[20140101]), "/mnt/resource/staging/20140101.seq")
 
 def m0():
     try:
-        os.remove("/mnt/resource/arch/test1.seq")
+        os.remove("/mnt/resource/staging/test1.seq")
     except:
         pass
-    materializeUrls(testUrls, "/mnt/resource/arch/test1.seq")
+    materializeUrls(testUrls, "/mnt/resource/staging/test1.seq")
 
 def m():
     try:
-        os.remove("/mnt/resource/arch/20140101.seq")
+        os.remove("/mnt/resource/staging/20140101.seq")
     except:
         pass
-    materializeUrls(genUrls(datestamps=[20140101]), "/mnt/resource/arch/20140101.seq")
+    materializeUrls(genUrls(datestamps=[20140101]), "/mnt/resource/staging/20140101.seq")
 
 def matByDate(datestamp):
     try:
-        os.remove("/mnt/resource/arch/%s.seq" % datestamp)
+        os.remove("/mnt/resource/staging/%s.seq" % datestamp)
     except:
         pass
-    materializeUrls(genUrls(datestamps=[datestamp]), "/mnt/resource/arch/%s.seq" % datestamp)
+    materializeUrls(genUrls(datestamps=[datestamp]), "/mnt/resource/staging/%s.seq" % datestamp)
 
         # start = datetime.datetime.now()
         # logger.info("START extract [%s]", self.source)
@@ -467,5 +462,10 @@ def matByDate(datestamp):
         # logger.info("END extract [%s]", self.source)
         # delta = end - start
         # logger.info("ELAPSED extract [%s] is %s", self.source, elapsed(delta))
-    
-print WindowsAzureError
+
+def matSeveral():
+    for sitekey in ['losangeles', 'sanfernandovalley', 'longbeach', 'sangabrielvalley', 'palmdale', 'orangecounty', 'inlandempire']:
+        for datestamp in genDatestamps(start=20140101, end=20140110):
+            print sitekey, datestamp
+            urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
+            materializeUrls(urls, "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp))
