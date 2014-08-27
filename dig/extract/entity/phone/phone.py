@@ -8,11 +8,12 @@ dig.extract.entity.phone
 @version 1.0
 '''
 
-import sys, os, re, time, datetime
-from time import localtime, mktime, gmtime
+import sys, os, re
 import simplejson as json
 import argparse
-from util import echo, interpretCmdLine
+from util import interpretCmdLine
+# for debug only
+from util import echo
 
 VERSION = "1.0"
 __version__ = VERSION
