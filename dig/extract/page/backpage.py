@@ -1,26 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Filename: extract.py
+# Filename: backpage.py
 
 '''
 dig.extract.page.backpage
 @author: Andrew Philpot
-@version 4.2
+@version 4.3
 '''
 
 import sys, os, re, time, datetime
 from time import localtime, mktime, gmtime
 from bs4 import BeautifulSoup as bs
-from wat.escort.markets import MARKETS
 import simplejson as json
 import argparse
-from wat.tool.shedhtml import shedHTML
-from wat.escort.extract.page import Page
-from util import echo, interpretCmdLine, ensureDirectoriesExist
-from util import abbrevString, emittable, utf8print
-import pprint
+from dig.extract.page.page import Page
+from util import interpretCmdLine, ensureDirectoriesExist
+# for debug only
+from util import echo, abbrevString, emittable, utf8print
 
-VERSION = "4.2"
+VERSION = "4.3"
 __version__ = VERSION
 REVISION = "$Revision: 25782 $".replace("$","")
 
@@ -31,7 +29,21 @@ REVISION = "$Revision: 25782 $".replace("$","")
 #   images: image(url)
 #   crosslinks: (url1, url2)
 
+def loadMarkets():
+    with open(os.path.join(os.path.dirname(__file__), 'data', 'market.json'), 'r') as f:
+        return json.load(f)
+
+MARKETS = None
+def ensureMarkets():
+    global MARKETS
+    if not MARKETS:
+        MARKETS = loadMarkets()
+    return MARKETS
+
 class BackpagePage(Page):
+
+    markets = ensureMarkets()
+
     def __init__(self, **kwargs):
         Page.__init__(self, **kwargs)
         self.source = 'backpage'
@@ -56,7 +68,7 @@ class BackpagePage(Page):
         return None
 
     def deduceMarket(self, sitekey):
-        for (faa_code, market) in MARKETS.iteritems():
+        for (faa_code, market) in self.markets.iteritems():
             websites = market.get('websites') or []
             for website in websites:
                 if (website.get('application') == 'escort' 
