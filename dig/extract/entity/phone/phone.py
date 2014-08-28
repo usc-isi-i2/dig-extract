@@ -1,6 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env ./dig/bin/python
 # -*- coding: utf-8 -*-
 # Filename: phone.py
+
+# also consider
+#!/usr/bin/env python
 
 '''
 dig.extract.entity.phone
