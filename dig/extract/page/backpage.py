@@ -19,7 +19,6 @@ import argparse
 from dig.extract.page.page import Page
 from util import interpretCmdLine, ensureDirectoriesExist
 # for debug only
-print sys.path
 # for some reason the utf8print is not found here
 # from util import echo, abbrevString, emittable, utf8print
 # from util import echo, abbrevString, emittable
