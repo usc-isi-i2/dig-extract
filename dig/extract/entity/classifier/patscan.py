@@ -463,28 +463,75 @@ def main(argv=None):
                 titleText = post.get('titleText')
                 if titleText:
                     scanner = PatternScanner(titleText['tokens'], category)
-                    score = -1
+                    # arguably we should only add novel matches
+                    # implemention would be to represent/convert 
+                    # patternScanMatch dicts to namedtuples
+                    # use a set to uniquify
+                    # then convert back to dict to write out as JSON
+                    # for now, we will simply append to list
+                    titlePatternScanMatches = titleText.get('patternScanMatches') or []
                     for (phrase, subseqs) in scanner.scan():
-                        score = max(score, phrase.weight)
-                    if score>0:
-                        titleText[category+"Score"] = score
+                        for subseq in subseqs:
+                            resultJson = {"objectType": "patternScanMatch",
+                                          "phrasePattern":
+                                              {"indic": phrase.indic,
+                                               "category": phrase.category,
+                                               "family": phrase.family,
+                                               "tokenRegexPattern": str(phrase.pattern),
+                                               "weight": phrase.weight},
+                                          "tokenSequence": subseq}
+                            titlePatternScanMatches.append(resultJson)
+                    # is it good practice to record empty results
+                    # or should we just not have any such entry
+                    titleText['patternScanMatches'] = titlePatternScanMatches
                 locationText = post.get('locationText')
                 if locationText:
                     scanner = PatternScanner(locationText['tokens'], category)
-                    score = -1
+                    # arguably we should only add novel matches
+                    # implemention would be to represent/convert 
+                    # patternScanMatch dicts to namedtuples
+                    # use a set to uniquify
+                    # then convert back to dict to write out as JSON
+                    # for now, we will simply append to list
+                    locationPatternScanMatches = locationText.get('patternScanMatches') or []
                     for (phrase, subseqs) in scanner.scan():
-                        score = max(score, phrase.weight)
-                    if score>0:
-                        locationText[category+"Score"] = score
+                        for subseq in subseqs:
+                            resultJson = {"objectType": "patternScanMatch",
+                                          "phrasePattern":
+                                              {"indic": phrase.indic,
+                                               "category": phrase.category,
+                                               "family": phrase.family,
+                                               "tokenRegexPattern": str(phrase.pattern),
+                                               "weight": phrase.weight},
+                                          "tokenSequence": subseq}
+                            locationPatternScanMatches.append(resultJson)
+                    # is it good practice to record empty results
+                    # or should we just not have any such entry
+                    locationText['patternScanMatches'] = locationPatternScanMatches
                 bodyText = post.get('bodyText')
                 if bodyText:
                     scanner = PatternScanner(bodyText['tokens'], category)
-                    score = -1
+                    # arguably we should only add novel matches
+                    # implemention would be to represent/convert 
+                    # patternScanMatch dicts to namedtuples
+                    # use a set to uniquify
+                    # then convert back to dict to write out as JSON
+                    # for now, we will simply append to list
+                    bodyPatternScanMatches = bodyText.get('patternScanMatches') or []
                     for (phrase, subseqs) in scanner.scan():
-                        score = max(score, phrase.weight)
-                        print phrase, subseqs
-                    if score>0:
-                        bodyText[category+"Score"] = score
+                        for subseq in subseqs:
+                            resultJson = {"objectType": "patternScanMatch",
+                                          "phrasePattern":
+                                              {"indic": phrase.indic,
+                                               "category": phrase.category,
+                                               "family": phrase.family,
+                                               "tokenRegexPattern": str(phrase.pattern),
+                                               "weight": phrase.weight},
+                                          "tokenSequence": subseq}
+                            bodyPatternScanMatches.append(resultJson)
+                    # is it good practice to record empty results
+                    # or should we just not have any such entry
+                    bodyText['patternScanMatches'] = bodyPatternScanMatches
 
             js = json.dumps(post, sort_keys=True, indent=None)
             print >> sys.stdout, "%s\t%s" % (url, js)
