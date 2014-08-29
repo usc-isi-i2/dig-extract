@@ -202,7 +202,7 @@ vocab = {
     "asian": "|".join(["ASIAN", "ASAIN",
                        "CHINESE", "JAPANESE", "KOREAN", "THAI", "VIETNAMESE", "ORIENTAL", 
                        "FILIPINO", "FILIPINA", "PHILIPINO", "PHILIPINA",
-                       "MALAYSIAN"]),
+                       "MALAYSIAN", "PERSIAN"]),
     "latina": "|".join(["LATINA", "LATINO", "LATIN"]),
     "asia": "|".join(["ASIA", "CHINA", "HONG" "KONG" "BEIJING" "TAIWAN" "TAIPEI" 
                       "JAPAN", "TOKYO", "OSAKA",
