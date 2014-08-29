@@ -438,72 +438,12 @@ Phrase((92,1,1), "NBA", "NBA", r"""(?V1)<(?i)NBA>""", 1)
 Phrase((92,2,1), "allstar", "allstar", r"""(?V1)<(?i)allstar>""", 1)
 Phrase((92,2,2), "allstar", "all star", r"""(?V1)<(?i)ALL> <->? (?V1)<(?i)STAR>""", 1)
 
-print Phrase.byCategory.keys()
-exit(0)
-
-
-
-# def main(argv=None):
-#     '''this is called if run from command line'''
-#     # process command line arguments
-#     if argv is None:
-#         argv = sys.argv
-#     try:
-#         opts, args = getopt.getopt(argv[1:], "c:f:i:j:tvh",
-#                                    ["echo=", "help",
-# 				    "config=",
-# 				    "test",
-#                                     "verbose"])
-#     except getopt.error, msg:
-#         print >> sys.stderr, msg
-#         print >> sys.stderr, "for help use --help"
-#         sys.exit(2)
-
-#     # default options
-#     my_category = None
-#     my_family = None
-#     my_indicator = None
-#     my_config = CONFIG
-#     my_test = TEST
-#     my_verbose = VERBOSE
-#     # process options
-#     for o, a in opts:
-#         if o in ("-h","--help"):
-#             print __doc__
-#             sys.exit(0)
-#         if o in ("--echo", ):
-#             print a
-#         if o in ("-c", "--category", ):
-#             my_category = a
-#         if o in ("-f", "--family", ):
-#             my_family = a
-#         if o in ("-i", "--indic", "--indicator", ):
-#             my_indicator = a
-#         if o in ("-v", "--verbose", ):
-#             my_verbose = True
-#         if o in ("-j", "--config",):
-#             my_config = a;
-#         if o in ("-t", "--test",):
-#             my_test = True;
-                                     
-#     if my_verbose:
-#         logger.debug("ARGV is %s" % (argv))
-
-#     tokens = args
-#     pprint.pprint(patternScan(tokens, category=my_category, family=my_family, indicator=my_indicator))
-
-# # # call main() if this is run as standalone
-# # if __name__ == "__main__":
-# #     sys.exit(main())
-
-# # End of patscan.py
-
 DEFAULTCATEGORY = "multiProvider"
 def main(argv=None):
     '''this is called if run from command line'''
     (prog, args) = interpretCmdLine()
     parser = argparse.ArgumentParser(prog, description='PatterScanner')
-    parser.add_argument('-c','--category', help='category to match', 
+    parser.add_argument('-c', '--category', help='category to match', 
                         required=True, 
                         default=DEFAULTCATEGORY)
     # parser.add_argument()
