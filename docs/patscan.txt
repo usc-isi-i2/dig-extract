@@ -1,0 +1,85 @@
+['ageSelect', 'meadowlands', 'outcall', 'superbowl', 'briefDuration', 'raceEthnicSelect', 'ethnicityNationality', 'notoutcall', 'multiProvider', 'notincall', 'notagency', 'agency', 'allstar', 'incall', 'names', 'spa', 'incalloutcall', 'NBA', 'providerYouth']
+
+ageSelect:
+score>0 indicates provider states preference for older men
+why this is interesting:
+(a) older men may be less likely to be pimps => pimp control
+(b) older men may be physically less stronger => less chance of violence
+(c) older men may be sexually less demanding
+(c) older men may be more able and more willing to pay => less chance of client not paying
+
+raceEthnicSelect:
+score>0 indicates provider states preference for white men/against black men
+why this is interesting:
+(a) presumption that black men may be pimps who would interfere with relationship with current pimp => pimp control
+(b) presumption that black men are physically stronger and/or sexually more demanding
+
+multiProvider:
+score>0 indicates provider states willingness to invole a second provider
+why this is interesting:
+(a) two providers may be in a co-opted/unwilling dynamic where the (typically older, more experienced) woman is being included to controland keep an eye on the (typically younger) trafficked one
+
+providerYouth:
+score>0 indicates language in ad accentuating provider's youthfulness
+why this is interesting:
+(a) provider may be a minor
+
+briefDuration:
+score>0 indicates language in ad suggesting provider has just arrived in town, is in town for a short time, and/or is leaving soon
+why this is interesting:
+(a) provider movement, especially after brief stays, is correlated with pimp control, keeping the provider from establishing any roots and making her more dependent on him
+(b) provider movement may be correlated with fear or prosecution/flight
+
+ethnicityNationality:
+score>0 indicates language in ad describing race or ethnicity, generally of the provider (not the client).  Only matches for various Asian and Latina are performed at present
+why this is interesting:
+(a) may assist with identification
+(b) may assist with disambiguating named entities
+
+incall:
+score>0 indicates language in ad suggesting provider wants client to come to location under her control, typically a hotel room or apartment, less commonly a spa/massage/strip club location
+why this is interesting:
+(a) different enforcement priority/policing procedure
+(b) may be positively correlated with older, more established, less pimp controlled providers
+
+outcall:
+score>0 indicates language in ad suggesting provider willing to come to client's location (typically hotel room, some are willing to come to private residence)
+why this is interesting:
+(a) difference enforcement priority/policing procedure
+(b) may be positively correlated with younger, less established, more pimp controlled providers
+
+agency:
+score>0 indicates language in ad regarding agencies.  There are two meanings of this word: (1) an escort agency which provides a set of providers and may exercise some control in which provider is assigned to which client; (2) law enforcement agency (less common)
+why this is interesting:
+(a) most providers self-identify as independent, denying both pimp control and agency affiliation, as both of these have negative connotations.  When self-identifying positively with agency affiliation, it is often correlated with higher prices (agency gets a cut).  Agencies suggest their providers are more elite, more exclusive.  Because of the fee structure, may be correlated with more established, older provider
+
+notagency:
+score>0 indicates language in ad denying agency affiliation
+why this is interesting:
+(a) may be statement of independence
+(b) may be (vain) attempt to forbid law enforcement agencies to contact provider, to avoid prosecution
+
+incalloutcall:
+score>0 indicates language in ad suggesting willingness for both incall and outcall, possibly at different times/locations
+why this is important:
+(a) use as negative category to improve precision of incall, outcall
+
+notincall:
+score>0 indicates language suggesting unwillingness to perform incall services
+why this is important
+(a) use as negative category to improve precision of incall, outcall
+
+notoutcall:
+score>0 indicates language suggesting unwillingness to perform outcall services
+why this is important
+(a) use as negative category to improve precision of incall, outcall
+
+names:
+score>0 indicates text in ad tending to indicate working name.  Very approximate
+why this is important
+(a) identification
+
+superbowl, meadowlands, allstar, NBA:
+score>0 indicates text in ad indicating sporting event, presumably provider is indicating she is in town for the event in question
+why this is important
+(a) hypothesis that trafficked women are brought in to service the largely male attendance at major sporting events
