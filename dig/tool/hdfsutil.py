@@ -236,7 +236,7 @@ def dbpa(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
 def download(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
     return downloadBackpageAds(datestamps=datestamps, crawlAgents=crawlAgents)
             
-def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint):
+def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxAttempts=5):
     start = datetime.datetime.now()
     i=0
     remaining = limit
@@ -258,8 +258,18 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint):
                             #     print """bs.put_block_blob_from_path(%s, %s, %s, x_ms_blob_content_type='text/html')""" % (mycontainer, destination, pathname)
 
                             try:
-                                bs.put_block_blob_from_path(mycontainer, destination, pathname,
-                                                            x_ms_blob_content_type='text/html')
+                                success = False
+                                remainingAttempts = maxAttempts
+                                while not success and remainingAttempts>0:
+                                    try:
+                                        bs.put_block_blob_from_path(mycontainer, destination, pathname,
+                                                                    x_ms_blob_content_type='text/html')
+                                        success = True
+                                        break
+                                    except socket.error as se:
+                                        remainingAttempts -= 1
+                                        print >> sys.stderr, "Uploading %s failed, sleep 5 sec, %d more tries" % (pathname, remainingAttempts)
+                                        time.sleep(5)
                             except WindowsAzureError as e:
                                 print >> sys.stderr, "Azure failure [%r], skipping"
                             i += 1
