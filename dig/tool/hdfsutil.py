@@ -1223,4 +1223,12 @@ def matJanThruJune():
             urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
             materializeUrls(urls, "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp))
         
+def matJan():
+    for datestamp in genDatestamps(20140101,20140110):
+        for tup in BACKPAGE_SITEKEYS:
+            sitekey = tup[5]
+            if not sitekey in ['losangeles', 'sanfernandovalley', 'longbeach', 'sangabrielvalley', 'palmdale', 'orangecounty', 'inlandempire']:
+                print sitekey, datestamp
+                urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
+                materializeUrls(urls, "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp))
 
