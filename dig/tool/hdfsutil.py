@@ -1242,3 +1242,43 @@ def matJan():
                 urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
                 materializeUrls(urls, "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp))
 
+def matJan2():
+    for datestamp in genDatestamps(20140101,20140110):
+        with open('/tmp/all%d.urls' % datestamp, 'r') as f:
+            allUrls = f.readlines()
+        for tup in BACKPAGE_SITEKEYS:
+            sitekey = tup[5]
+            pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
+            if os.path.exists(pth):
+                continue
+            if not sitekey in ['losangeles', 'sanfernandovalley', 'longbeach', 'sangabrielvalley', 'palmdale', 'orangecounty', 'inlandempire']:
+                sitekeyUrls = []
+                for url in allUrls:
+                    fields = url.split('/')
+                    host = fields[6]
+                    urlSitekey = host.split('.')[0]
+                    if urlSitekey == sitekey:
+                        sitekeyUrls.append(url)
+                print sitekey, datestamp
+                materializeUrls(sitekeyUrls, pth)
+
+def matJanThruJune2():
+    for datestamp in genDatestamps(20140111,20140601)
+        with open('/tmp/all%d.urls' % datestamp, 'r') as f:
+            allUrls = f.readlines()
+        for tup in BACKPAGE_SITEKEYS:
+            sitekey = tup[5]
+            pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
+            if os.path.exists(pth):
+                continue
+            sitekeyUrls = []
+            for url in allUrls:
+                fields = url.split('/')
+                host = fields[6]
+                urlSitekey = host.split('.')[0]
+                if urlSitekey == sitekey:
+                    sitekeyUrls.append(url)
+            print sitekey, datestamp
+            materializeUrls(sitekeyUrls, pth)
+
+
