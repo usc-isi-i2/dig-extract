@@ -236,7 +236,7 @@ def dbpa(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
 def download(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
     return downloadBackpageAds(datestamps=datestamps, crawlAgents=crawlAgents)
             
-def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint):
+def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxAttempts=5):
     start = datetime.datetime.now()
     i=0
     remaining = limit
@@ -258,8 +258,18 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint):
                             #     print """bs.put_block_blob_from_path(%s, %s, %s, x_ms_blob_content_type='text/html')""" % (mycontainer, destination, pathname)
 
                             try:
-                                bs.put_block_blob_from_path(mycontainer, destination, pathname,
-                                                            x_ms_blob_content_type='text/html')
+                                success = False
+                                remainingAttempts = maxAttempts
+                                while not success and remainingAttempts>0:
+                                    try:
+                                        bs.put_block_blob_from_path(mycontainer, destination, pathname,
+                                                                    x_ms_blob_content_type='text/html')
+                                        success = True
+                                        break
+                                    except socket.error as se:
+                                        remainingAttempts -= 1
+                                        print >> sys.stderr, "Uploading %s failed, sleep 5 sec, %d more tries" % (pathname, remainingAttempts)
+                                        time.sleep(5)
                             except WindowsAzureError as e:
                                 print >> sys.stderr, "Azure failure [%r], skipping"
                             i += 1
@@ -1235,4 +1245,52 @@ def matJanThruJune():
                 urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
                 materializeUrls(urls, pth)
         
+def matJan():
+    for datestamp in genDatestamps(20140101,20140110):
+        for tup in BACKPAGE_SITEKEYS:
+            sitekey = tup[5]
+            if not sitekey in ['losangeles', 'sanfernandovalley', 'longbeach', 'sangabrielvalley', 'palmdale', 'orangecounty', 'inlandempire']:
+                print sitekey, datestamp
+                urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
+                materializeUrls(urls, "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp))
+
+def matJan2():
+    for datestamp in genDatestamps(20140101,20140110):
+        with open('/tmp/all%d.urls' % datestamp, 'r') as f:
+            allUrls = f.readlines()
+        for tup in BACKPAGE_SITEKEYS:
+            sitekey = tup[5]
+            pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
+            if os.path.exists(pth):
+                continue
+            if not sitekey in ['losangeles', 'sanfernandovalley', 'longbeach', 'sangabrielvalley', 'palmdale', 'orangecounty', 'inlandempire']:
+                sitekeyUrls = []
+                for url in allUrls:
+                    fields = url.split('/')
+                    host = fields[6]
+                    urlSitekey = host.split('.')[0]
+                    if urlSitekey == sitekey:
+                        sitekeyUrls.append(url)
+                print sitekey, datestamp
+                materializeUrls(sitekeyUrls, pth)
+
+def matJanThruJune2():
+    for datestamp in genDatestamps(20140111,20140601)
+        with open('/tmp/all%d.urls' % datestamp, 'r') as f:
+            allUrls = f.readlines()
+        for tup in BACKPAGE_SITEKEYS:
+            sitekey = tup[5]
+            pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
+            if os.path.exists(pth):
+                continue
+            sitekeyUrls = []
+            for url in allUrls:
+                fields = url.split('/')
+                host = fields[6]
+                urlSitekey = host.split('.')[0]
+                if urlSitekey == sitekey:
+                    sitekeyUrls.append(url)
+            print sitekey, datestamp
+            materializeUrls(sitekeyUrls, pth)
+
 
