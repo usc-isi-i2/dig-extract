@@ -385,18 +385,26 @@ def materializeUrls(urls, destFile, sequence=True):
         writer = open(destFile, 'w')
     for url in urls:
         if sequence:
-            key = Text()
-            key.set(url)
-            value = Text()
-            # I'm not at all sure why we would want to decode, not encode here
-            # this is the only thing that worked
-            value.set(Text.decode(json.dumps(util.chunkedFetchUrlText(url))))
-            writer.append(key, value)
+            try:
+                key = Text()
+                key.set(url)
+                value = Text()
+                # I'm not at all sure why we would want to decode, not encode here
+                # this is the only thing that worked
+                value.set(Text.decode(json.dumps(util.chunkedFetchUrlText(url))))
+                writer.append(key, value)
+            except e:
+                print >> sys.stderr, "Giving up [%s] on fetching %s" % (e, url)
+                continue
         else:
-            key = url
-            value = json.dumps(util.chunkedFetchUrlText(url))
-            line = "%s\t%s" % (url, value)
-            print >> writer, line
+            try:
+                key = url
+                value = json.dumps(util.chunkedFetchUrlText(url))
+                line = "%s\t%s" % (url, value)
+                print >> writer, line
+            except e:
+                print >> sys.stderr, "Giving up [%s] on fetching %s" % (e, url)
+                continue
     writer.close()
     end = datetime.datetime.now()
     delta = end - start
@@ -1230,8 +1238,12 @@ def matJanThruJune():
         for tup in BACKPAGE_SITEKEYS:
             sitekey = tup[5]
             print sitekey, datestamp
-            urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
-            materializeUrls(urls, "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp))
+            pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
+            if os.path.exists(pth):
+                pass
+            else:
+                urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
+                materializeUrls(urls, pth)
         
 def matJan():
     for datestamp in genDatestamps(20140101,20140110):
