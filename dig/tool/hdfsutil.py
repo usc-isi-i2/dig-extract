@@ -13,6 +13,7 @@ from hadoop.io import SequenceFile
 import datetime
 import simplejson as json
 import re
+import socket
 
 # corresponds to r25784 from memex/toddler svn repository
 
