@@ -393,7 +393,7 @@ def materializeUrls(urls, destFile, sequence=True):
                 # this is the only thing that worked
                 value.set(Text.decode(json.dumps(util.chunkedFetchUrlText(url))))
                 writer.append(key, value)
-            except e:
+            except Exception as e:
                 print >> sys.stderr, "Giving up [%s] on fetching %s" % (e, url)
                 continue
         else:
@@ -402,7 +402,7 @@ def materializeUrls(urls, destFile, sequence=True):
                 value = json.dumps(util.chunkedFetchUrlText(url))
                 line = "%s\t%s" % (url, value)
                 print >> writer, line
-            except e:
+            except Exception as e:
                 print >> sys.stderr, "Giving up [%s] on fetching %s" % (e, url)
                 continue
     writer.close()
@@ -1275,7 +1275,7 @@ def matJan2():
                 materializeUrls(sitekeyUrls, pth)
 
 def matJanThruJune2():
-    for datestamp in genDatestamps(20140111,20140601)
+    for datestamp in genDatestamps(20140111,20140601):
         with open('/tmp/all%d.urls' % datestamp, 'r') as f:
             allUrls = f.readlines()
         for tup in BACKPAGE_SITEKEYS:
