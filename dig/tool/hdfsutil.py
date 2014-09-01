@@ -395,7 +395,7 @@ def materializeUrls(urls, destFile, sequence=True):
                 # this is the only thing that worked
                 value.set(Text.decode(json.dumps(util.chunkedFetchUrlText(url))))
                 writer.append(key, value)
-            except e:
+            except Exception as e:
                 print >> sys.stderr, "Giving up [%s] on fetching %s" % (e, url)
                 continue
         else:
@@ -404,7 +404,7 @@ def materializeUrls(urls, destFile, sequence=True):
                 value = json.dumps(util.chunkedFetchUrlText(url))
                 line = "%s\t%s" % (url, value)
                 print >> writer, line
-            except e:
+            except Exception as e:
                 print >> sys.stderr, "Giving up [%s] on fetching %s" % (e, url)
                 continue
     writer.close()
