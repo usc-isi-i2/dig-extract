@@ -202,7 +202,7 @@ vocab = {
     "asian": "|".join(["ASIAN", "ASAIN",
                        "CHINESE", "JAPANESE", "KOREAN", "THAI", "VIETNAMESE", "ORIENTAL", 
                        "FILIPINO", "FILIPINA", "PHILIPINO", "PHILIPINA",
-                       "MALAYSIAN"]),
+                       "MALAYSIAN", "PERSIAN"]),
     "latina": "|".join(["LATINA", "LATINO", "LATIN"]),
     "asia": "|".join(["ASIA", "CHINA", "HONG" "KONG" "BEIJING" "TAIWAN" "TAIPEI" 
                       "JAPAN", "TOKYO", "OSAKA",
@@ -438,72 +438,12 @@ Phrase((92,1,1), "NBA", "NBA", r"""(?V1)<(?i)NBA>""", 1)
 Phrase((92,2,1), "allstar", "allstar", r"""(?V1)<(?i)allstar>""", 1)
 Phrase((92,2,2), "allstar", "all star", r"""(?V1)<(?i)ALL> <->? (?V1)<(?i)STAR>""", 1)
 
-print Phrase.byCategory.keys()
-exit(0)
-
-
-
-# def main(argv=None):
-#     '''this is called if run from command line'''
-#     # process command line arguments
-#     if argv is None:
-#         argv = sys.argv
-#     try:
-#         opts, args = getopt.getopt(argv[1:], "c:f:i:j:tvh",
-#                                    ["echo=", "help",
-# 				    "config=",
-# 				    "test",
-#                                     "verbose"])
-#     except getopt.error, msg:
-#         print >> sys.stderr, msg
-#         print >> sys.stderr, "for help use --help"
-#         sys.exit(2)
-
-#     # default options
-#     my_category = None
-#     my_family = None
-#     my_indicator = None
-#     my_config = CONFIG
-#     my_test = TEST
-#     my_verbose = VERBOSE
-#     # process options
-#     for o, a in opts:
-#         if o in ("-h","--help"):
-#             print __doc__
-#             sys.exit(0)
-#         if o in ("--echo", ):
-#             print a
-#         if o in ("-c", "--category", ):
-#             my_category = a
-#         if o in ("-f", "--family", ):
-#             my_family = a
-#         if o in ("-i", "--indic", "--indicator", ):
-#             my_indicator = a
-#         if o in ("-v", "--verbose", ):
-#             my_verbose = True
-#         if o in ("-j", "--config",):
-#             my_config = a;
-#         if o in ("-t", "--test",):
-#             my_test = True;
-                                     
-#     if my_verbose:
-#         logger.debug("ARGV is %s" % (argv))
-
-#     tokens = args
-#     pprint.pprint(patternScan(tokens, category=my_category, family=my_family, indicator=my_indicator))
-
-# # # call main() if this is run as standalone
-# # if __name__ == "__main__":
-# #     sys.exit(main())
-
-# # End of patscan.py
-
 DEFAULTCATEGORY = "multiProvider"
 def main(argv=None):
     '''this is called if run from command line'''
     (prog, args) = interpretCmdLine()
     parser = argparse.ArgumentParser(prog, description='PatterScanner')
-    parser.add_argument('-c','--category', help='category to match', 
+    parser.add_argument('-c', '--category', help='category to match', 
                         required=True, 
                         default=DEFAULTCATEGORY)
     # parser.add_argument()
@@ -523,28 +463,75 @@ def main(argv=None):
                 titleText = post.get('titleText')
                 if titleText:
                     scanner = PatternScanner(titleText['tokens'], category)
-                    score = -1
+                    # arguably we should only add novel matches
+                    # implemention would be to represent/convert 
+                    # patternScanMatch dicts to namedtuples
+                    # use a set to uniquify
+                    # then convert back to dict to write out as JSON
+                    # for now, we will simply append to list
+                    titlePatternScanMatches = titleText.get('patternScanMatches') or []
                     for (phrase, subseqs) in scanner.scan():
-                        score = max(score, phrase.weight)
-                    if score>0:
-                        titleText[category+"Score"] = score
+                        for subseq in subseqs:
+                            resultJson = {"objectType": "patternScanMatch",
+                                          "phrasePattern":
+                                              {"indic": phrase.indic,
+                                               "category": phrase.category,
+                                               "family": phrase.family,
+                                               "tokenRegexPattern": str(phrase.pattern),
+                                               "weight": phrase.weight},
+                                          "tokenSequence": subseq}
+                            titlePatternScanMatches.append(resultJson)
+                    # is it good practice to record empty results
+                    # or should we just not have any such entry
+                    titleText['patternScanMatches'] = titlePatternScanMatches
                 locationText = post.get('locationText')
                 if locationText:
                     scanner = PatternScanner(locationText['tokens'], category)
-                    score = -1
+                    # arguably we should only add novel matches
+                    # implemention would be to represent/convert 
+                    # patternScanMatch dicts to namedtuples
+                    # use a set to uniquify
+                    # then convert back to dict to write out as JSON
+                    # for now, we will simply append to list
+                    locationPatternScanMatches = locationText.get('patternScanMatches') or []
                     for (phrase, subseqs) in scanner.scan():
-                        score = max(score, phrase.weight)
-                    if score>0:
-                        locationText[category+"Score"] = score
+                        for subseq in subseqs:
+                            resultJson = {"objectType": "patternScanMatch",
+                                          "phrasePattern":
+                                              {"indic": phrase.indic,
+                                               "category": phrase.category,
+                                               "family": phrase.family,
+                                               "tokenRegexPattern": str(phrase.pattern),
+                                               "weight": phrase.weight},
+                                          "tokenSequence": subseq}
+                            locationPatternScanMatches.append(resultJson)
+                    # is it good practice to record empty results
+                    # or should we just not have any such entry
+                    locationText['patternScanMatches'] = locationPatternScanMatches
                 bodyText = post.get('bodyText')
                 if bodyText:
                     scanner = PatternScanner(bodyText['tokens'], category)
-                    score = -1
+                    # arguably we should only add novel matches
+                    # implemention would be to represent/convert 
+                    # patternScanMatch dicts to namedtuples
+                    # use a set to uniquify
+                    # then convert back to dict to write out as JSON
+                    # for now, we will simply append to list
+                    bodyPatternScanMatches = bodyText.get('patternScanMatches') or []
                     for (phrase, subseqs) in scanner.scan():
-                        score = max(score, phrase.weight)
-                        print phrase, subseqs
-                    if score>0:
-                        bodyText[category+"Score"] = score
+                        for subseq in subseqs:
+                            resultJson = {"objectType": "patternScanMatch",
+                                          "phrasePattern":
+                                              {"indic": phrase.indic,
+                                               "category": phrase.category,
+                                               "family": phrase.family,
+                                               "tokenRegexPattern": str(phrase.pattern),
+                                               "weight": phrase.weight},
+                                          "tokenSequence": subseq}
+                            bodyPatternScanMatches.append(resultJson)
+                    # is it good practice to record empty results
+                    # or should we just not have any such entry
+                    bodyText['patternScanMatches'] = bodyPatternScanMatches
 
             js = json.dumps(post, sort_keys=True, indent=None)
             print >> sys.stdout, "%s\t%s" % (url, js)

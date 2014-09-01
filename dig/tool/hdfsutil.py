@@ -13,6 +13,7 @@ from hadoop.io import SequenceFile
 import datetime
 import simplejson as json
 import re
+import time
 import socket
 
 # corresponds to r25784 from memex/toddler svn repository
@@ -259,6 +260,7 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxA
                             #     print """bs.put_block_blob_from_path(%s, %s, %s, x_ms_blob_content_type='text/html')""" % (mycontainer, destination, pathname)
 
                             try:
+<<<<<<< HEAD
                                 transferred = False
                                 remainingAttempts = maxAttempts
                                 while not transferred and remainingAttempts > 0:
@@ -269,6 +271,20 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxA
                                     except socket.error as e: 
                                         print >> sys.stderr, "Retry putting (%s more) %s" % (remainingAttempts, destination)
                                         remainingAttempts -= 1
+=======
+                                success = False
+                                remainingAttempts = maxAttempts
+                                while not success and remainingAttempts>0:
+                                    try:
+                                        bs.put_block_blob_from_path(mycontainer, destination, pathname,
+                                                                    x_ms_blob_content_type='text/html')
+                                        success = True
+                                        break
+                                    except socket.error as se:
+                                        remainingAttempts -= 1
+                                        print >> sys.stderr, "Uploading %s failed, sleep 5 sec, %d more tries" % (pathname, remainingAttempts)
+                                        time.sleep(5)
+>>>>>>> 3321a5e92de6b44a7b3c44da12e2d5228bbaa629
                             except WindowsAzureError as e:
                                 print >> sys.stderr, "Azure failure [%r], skipping"
                             i += 1
@@ -384,18 +400,26 @@ def materializeUrls(urls, destFile, sequence=True):
         writer = open(destFile, 'w')
     for url in urls:
         if sequence:
-            key = Text()
-            key.set(url)
-            value = Text()
-            # I'm not at all sure why we would want to decode, not encode here
-            # this is the only thing that worked
-            value.set(Text.decode(json.dumps(util.chunkedFetchUrlText(url))))
-            writer.append(key, value)
+            try:
+                key = Text()
+                key.set(url)
+                value = Text()
+                # I'm not at all sure why we would want to decode, not encode here
+                # this is the only thing that worked
+                value.set(Text.decode(json.dumps(util.chunkedFetchUrlText(url))))
+                writer.append(key, value)
+            except Exception as e:
+                print >> sys.stderr, "Giving up [%s] on fetching %s" % (e, url)
+                continue
         else:
-            key = url
-            value = json.dumps(util.chunkedFetchUrlText(url))
-            line = "%s\t%s" % (url, value)
-            print >> writer, line
+            try:
+                key = url
+                value = json.dumps(util.chunkedFetchUrlText(url))
+                line = "%s\t%s" % (url, value)
+                print >> writer, line
+            except Exception as e:
+                print >> sys.stderr, "Giving up [%s] on fetching %s" % (e, url)
+                continue
     writer.close()
     end = datetime.datetime.now()
     delta = end - start
@@ -807,3 +831,480 @@ def matSeveral():
             print sitekey, datestamp
             urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
             materializeUrls(urls, "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp))
+
+BACKPAGE_SITEKEYS=[["-s","backpage","-i","47N","-i","centraljersey"],
+                   ["-s","backpage","-i","ABE","-i","allentown"],
+                   ["-s","backpage","-i","ABE","-i","poconos"],
+                   ["-s","backpage","-i","ABE","-i","reading"],
+                   ["-s","backpage","-i","ABI","-i","abilene"],
+                   ["-s","backpage","-i","ABQ","-i","albuquerque"],
+                   ["-s","backpage","-i","ABY","-i","albanyga"],
+                   ["-s","backpage","-i","ACK","-i","capecod"],
+                   ["-s","backpage","-i","ACT","-i","waco"],
+                   ["-s","backpage","-i","ACV","-i","humboldt"],
+                   ["-s","backpage","-i","ACY","-i","jerseyshore"],
+                   ["-s","backpage","-i","AEX","-i","alexandria"],
+                   ["-s","backpage","-i","AGS","-i","augusta"],
+                   ["-s","backpage","-i","AHN","-i","athensga"],
+                   ["-s","backpage","-i","ALB","-i","albany"],
+                   ["-s","backpage","-i","ALB","-i","catskills"],
+                   ["-s","backpage","-i","ALO","-i","waterloo"],
+                   ["-s","backpage","-i","AMA","-i","amarillo"],
+                   ["-s","backpage","-i","ANC","-i","anchorage"],
+                   ["-s","backpage","-i","ANP","-i","annapolis"],
+                   ["-s","backpage","-i","AOH","-i","limaoh"],
+                   ["-s","backpage","-i","AOO","-i","altoona"],
+                   ["-s","backpage","-i","ARB","-i","annarbor"],
+                   ["-s","backpage","-i","ART","-i","watertown"],
+                   ["-s","backpage","-i","ATL","-i","atlanta"],
+                   ["-s","backpage","-i","ATO","-i","athensoh"],
+                   ["-s","backpage","-i","ATW","-i","appleton"],
+                   ["-s","backpage","-i","AUS","-i","austin"],
+                   ["-s","backpage","-i","AUS","-i","sanmarcos"],
+                   ["-s","backpage","-i","AVL","-i","asheville"],
+                   ["-s","backpage","-i","AVP","-i","scranton"],
+                   ["-s","backpage","-i","AZO","-i","battlecreek"],
+                   ["-s","backpage","-i","AZO","-i","kalamazoo"],
+                   ["-s","backpage","-i","AZO","-i","swmi"],
+                   ["-s","backpage","-i","BDL","-i","hartford"],
+                   ["-s","backpage","-i","BDL","-i","springfield"],
+                   ["-s","backpage","-i","BFF","-i","scottsbluff"],
+                   ["-s","backpage","-i","BFL","-i","bakersfield"],
+                   ["-s","backpage","-i","BGM","-i","binghamton"],
+                   ["-s","backpage","-i","BGM","-i","oneonta"],
+                   ["-s","backpage","-i","BHM","-i","birmingham"],
+                   ["-s","backpage","-i","BHM","-i","gadsden"],
+                   ["-s","backpage","-i","BHM","-i","tuscaloosa"],
+                   ["-s","backpage","-i","BIL","-i","montana"],
+                   ["-s","backpage","-i","BIS","-i","bismarck"],
+                   ["-s","backpage","-i","BJI","-i","bemidji"],
+                   ["-s","backpage","-i","BLI","-i","bellingham"],
+                   ["-s","backpage","-i","BMG","-i","bloomingtonin"],
+                   ["-s","backpage","-i","BMI","-i","bloomington"],
+                   ["-s","backpage","-i","BNA","-i","nashville"],
+                   ["-s","backpage","-i","BOI","-i","boise"],
+                   ["-s","backpage","-i","BOS","-i","boston"],
+                   ["-s","backpage","-i","BPT","-i","beaumont"],
+                   ["-s","backpage","-i","BQK","-i","brunswick"],
+                   ["-s","backpage","-i","BRL","-i","ottumwa"],
+                   ["-s","backpage","-i","BRO","-i","brownsville"],
+                   ["-s","backpage","-i","BTR","-i","batonrouge"],
+                   ["-s","backpage","-i","BTV","-i","burlington"],
+                   ["-s","backpage","-i","BUF","-i","buffalo"],
+                   ["-s","backpage","-i","BUF","-i","chautauqua"],
+                   ["-s","backpage","-i","BUR","-i","sanfernandovalley"],
+                   ["-s","backpage","-i","BWG","-i","bowlinggreen"],
+                   ["-s","backpage","-i","BWI","-i","baltimore"],
+                   ["-s","backpage","-i","CAE","-i","columbia"],
+                   ["-s","backpage","-i","CAK","-i","akroncanton"],
+                   ["-s","backpage","-i","CBE","-i","westernmaryland"],
+                   ["-s","backpage","-i","CGI","-i","semo"],
+                   ["-s","backpage","-i","CHA","-i","chattanooga"],
+                   ["-s","backpage","-i","CHO","-i","charlottesville"],
+                   ["-s","backpage","-i","CHO","-i","harrisonburg"],
+                   ["-s","backpage","-i","CHS","-i","charleston"],
+                   ["-s","backpage","-i","CIC","-i","chico"],
+                   ["-s","backpage","-i","CID","-i","cedarrapids"],
+                   ["-s","backpage","-i","CID","-i","iowacity"],
+                   ["-s","backpage","-i","CIU","-i","up"],
+                   ["-s","backpage","-i","CKV","-i","clarksville"],
+                   ["-s","backpage","-i","CLE","-i","cleveland"],
+                   ["-s","backpage","-i","CLL","-i","collegestation"],
+                   ["-s","backpage","-i","CLT","-i","charlotte"],
+                   ["-s","backpage","-i","CMH","-i","columbus"],
+                   ["-s","backpage","-i","CMI","-i","chambana"],
+                   ["-s","backpage","-i","COS","-i","coloradosprings"],
+                   ["-s","backpage","-i","COU","-i","columbiamo"],
+                   ["-s","backpage","-i","CPR","-i","wyoming"],
+                   ["-s","backpage","-i","CRP","-i","corpuschristi"],
+                   ["-s","backpage","-i","CRW","-i","charlestonwv"],
+                   ["-s","backpage","-i","CSG","-i","auburn"],
+                   ["-s","backpage","-i","CSG","-i","columbusga"],
+                   ["-s","backpage","-i","CVG","-i","cincinnati"],
+                   ["-s","backpage","-i","CVN","-i","clovis"],
+                   ["-s","backpage","-i","CVO","-i","corvallis"],
+                   ["-s","backpage","-i","CWA","-i","wausau"],
+                   ["-s","backpage","-i","DAB","-i","daytona"],
+                   ["-s","backpage","-i","DAN","-i","danville"],
+                   ["-s","backpage","-i","DAY","-i","dayton"],
+                   ["-s","backpage","-i","DBQ","-i","dubuque"],
+                   ["-s","backpage","-i","DEC","-i","decatur"],
+                   ["-s","backpage","-i","DEN","-i","denver"],
+                   ["-s","backpage","-i","DFW","-i","arlington"],
+                   ["-s","backpage","-i","DFW","-i","dallas"],
+                   ["-s","backpage","-i","DFW","-i","denton"],
+                   ["-s","backpage","-i","DFW","-i","fortworth"],
+                   ["-s","backpage","-i","DHN","-i","dothan"],
+                   ["-s","backpage","-i","DLH","-i","duluth"],
+                   ["-s","backpage","-i","DRT","-i","delrio"],
+                   ["-s","backpage","-i","DSM","-i","desmoines"],
+                   ["-s","backpage","-i","DTW","-i","detroit"],
+                   ["-s","backpage","-i","DTW","-i","monroemi"],
+                   ["-s","backpage","-i","EAT","-i","wenatchee"],
+                   ["-s","backpage","-i","EAU","-i","eauclaire"],
+                   ["-s","backpage","-i","ECP","-i","panamacity"],
+                   ["-s","backpage","-i","EGE","-i","rockies"],
+                   ["-s","backpage","-i","EKO","-i","elko"],
+                   ["-s","backpage","-i","ELM","-i","elmira"],
+                   ["-s","backpage","-i","ELM","-i","twintiers"],
+                   ["-s","backpage","-i","ELP","-i","elpaso"],
+                   ["-s","backpage","-i","EMT","-i","sangabrielvalley"],
+                   ["-s","backpage","-i","ERI","-i","ashtabula"],
+                   ["-s","backpage","-i","ERI","-i","erie"],
+                   ["-s","backpage","-i","ERI","-i","meadville"],
+                   ["-s","backpage","-i","EUG","-i","eugene"],
+                   ["-s","backpage","-i","EVV","-i","evansville"],
+                   ["-s","backpage","-i","EWR","-i","northjersey"],
+                   ["-s","backpage","-i","EYW","-i","keys"],
+                   ["-s","backpage","-i","FAR","-i","fargo"],
+                   ["-s","backpage","-i","FAT","-i","fresno"],
+                   ["-s","backpage","-i","FAY","-i","fayettevillenc"],
+                   ["-s","backpage","-i","FDK","-i","frederick"],
+                   ["-s","backpage","-i","FLG","-i","flagstaff"],
+                   ["-s","backpage","-i","FLO","-i","florence"],
+                   ["-s","backpage","-i","FMN","-i","farmington"],
+                   ["-s","backpage","-i","FNL","-i","fortcollins"],
+                   ["-s","backpage","-i","FNT","-i","flint"],
+                   ["-s","backpage","-i","FOD","-i","fortdodge"],
+                   ["-s","backpage","-i","FSM","-i","fortsmith"],
+                   ["-s","backpage","-i","FWA","-i","fortwayne"],
+                   ["-s","backpage","-i","GEG","-i","spokane"],
+                   ["-s","backpage","-i","GEV","-i","boone"],
+                   ["-s","backpage","-i","GFK","-i","grandforks"],
+                   ["-s","backpage","-i","GFL","-i","glensfalls"],
+                   ["-s","backpage","-i","GJT","-i","westslope"],
+                   ["-s","backpage","-i","GNV","-i","gainesville"],
+                   ["-s","backpage","-i","GPT","-i","biloxi"],
+                   ["-s","backpage","-i","GRB","-i","greenbay"],
+                   ["-s","backpage","-i","GRI","-i","grandisland"],
+                   ["-s","backpage","-i","GRR","-i","grandrapids"],
+                   ["-s","backpage","-i","GRR","-i","holland"],
+                   ["-s","backpage","-i","GSO","-i","greensboro"],
+                   ["-s","backpage","-i","GSO","-i","winstonsalem"],
+                   ["-s","backpage","-i","GSP","-i","greenville"],
+                   ["-s","backpage","-i","GYI","-i","texoma"],
+                   ["-s","backpage","-i","HEZ","-i","natchez"],
+                   ["-s","backpage","-i","HGR","-i","chambersburg"],
+                   ["-s","backpage","-i","HGR","-i","cumberlandvalley"],
+                   ["-s","backpage","-i","HGR","-i","martinsburg"],
+                   ["-s","backpage","-i","HKY","-i","hickory"],
+                   ["-s","backpage","-i","HLG","-i","wheeling"],
+                   ["-s","backpage","-i","HNL","-i","honolulu"],
+                   ["-s","backpage","-i","HPN","-i","nwct"],
+                   ["-s","backpage","-i","HPN","-i","westchester"],
+                   ["-s","backpage","-i","HSV","-i","huntsville"],
+                   ["-s","backpage","-i","HTS","-i","huntington"],
+                   ["-s","backpage","-i","HUF","-i","terrehaute"],
+                   ["-s","backpage","-i","HVN","-i","newhaven"],
+                   ["-s","backpage","-i","HVN","-i","newlondon"],
+                   ["-s","backpage","-i","IAD","-i","dc"],
+                   ["-s","backpage","-i","IAD","-i","fredericksburg"],
+                   ["-s","backpage","-i","IAD","-i","nova"],
+                   ["-s","backpage","-i","IAD","-i","southernmaryland"],
+                   ["-s","backpage","-i","IAD","-i","washingtondc"],
+                   ["-s","backpage","-i","IAH","-i","galveston"],
+                   ["-s","backpage","-i","IAH","-i","houston"],
+                   ["-s","backpage","-i","ICT","-i","wichita"],
+                   ["-s","backpage","-i","IDA","-i","eastidaho"],
+                   ["-s","backpage","-i","IGM","-i","mohave"],
+                   ["-s","backpage","-i","ILE","-i","killeen"],
+                   ["-s","backpage","-i","ILG","-i","delaware"],
+                   ["-s","backpage","-i","ILM","-i","wilmington"],
+                   ["-s","backpage","-i","IND","-i","indianapolis"],
+                   ["-s","backpage","-i","IPL","-i","imperial"],
+                   ["-s","backpage","-i","IPT","-i","williamsport"],
+                   ["-s","backpage","-i","IRK","-i","kirksville"],
+                   ["-s","backpage","-i","ITH","-i","fingerlakes"],
+                   ["-s","backpage","-i","ITH","-i","ithaca"],
+                   ["-s","backpage","-i","JAN","-i","jackson"],
+                   ["-s","backpage","-i","JAX","-i","jacksonville"],
+                   ["-s","backpage","-i","JAX","-i","staugustine"],
+                   ["-s","backpage","-i","JBR","-i","jonesboro"],
+                   ["-s","backpage","-i","JFK","-i","bronx"],
+                   ["-s","backpage","-i","JFK","-i","brooklyn"],
+                   ["-s","backpage","-i","JFK","-i","longisland"],
+                   ["-s","backpage","-i","JFK","-i","manhattan"],
+                   ["-s","backpage","-i","JFK","-i","newyork"],
+                   ["-s","backpage","-i","JFK","-i","queens"],
+                   ["-s","backpage","-i","JFK","-i","statenisland"],
+                   ["-s","backpage","-i","JLN","-i","joplin"],
+                   ["-s","backpage","-i","JVL","-i","janesville"],
+                   ["-s","backpage","-i","JXN","-i","jacksonmi"],
+                   ["-s","backpage","-i","KOA","-i","bigisland"],
+                   ["-s","backpage","-i","LAF","-i","tippecanoe"],
+                   ["-s","backpage","-i","LAN","-i","lansing"],
+                   ["-s","backpage","-i","LAS","-i","lasvegas"],
+                   ["-s","backpage","-i","LAW","-i","lawton"],
+                   ["-s","backpage","-i","LAX","-i","losangeles"],
+                   ["-s","backpage","-i","LBB","-i","lubbock"],
+                   ["-s","backpage","-i","LBF","-i","northplatte"],
+                   ["-s","backpage","-i","LCH","-i","lakecharles"],
+                   ["-s","backpage","-i","LEX","-i","eastky"],
+                   ["-s","backpage","-i","LEX","-i","lexington"],
+                   ["-s","backpage","-i","LFT","-i","lafayette"],
+                   ["-s","backpage","-i","LGB","-i","longbeach"],
+                   ["-s","backpage","-i","LGU","-i","logan"],
+                   ["-s","backpage","-i","LIH","-i","kauai"],
+                   ["-s","backpage","-i","LIT","-i","littlerock"],
+                   ["-s","backpage","-i","LMT","-i","klamath"],
+                   ["-s","backpage","-i","LNK","-i","lincoln"],
+                   ["-s","backpage","-i","LRD","-i","laredo"],
+                   ["-s","backpage","-i","LRU","-i","lascruces"],
+                   ["-s","backpage","-i","LSE","-i","lacrosse"],
+                   ["-s","backpage","-i","LWB","-i","southernwestvirginia"],
+                   ["-s","backpage","-i","LWC","-i","lawrence"],
+                   ["-s","backpage","-i","LWC","-i","topeka"],
+                   ["-s","backpage","-i","LWS","-i","lewiston"],
+                   ["-s","backpage","-i","LYH","-i","lynchburg"],
+                   ["-s","backpage","-i","MAF","-i","odessa"],
+                   ["-s","backpage","-i","MBS","-i","saginaw"],
+                   ["-s","backpage","-i","MCE","-i","merced"],
+                   ["-s","backpage","-i","MCI","-i","kc"],
+                   ["-s","backpage","-i","MCN","-i","macon"],
+                   ["-s","backpage","-i","MCO","-i","orlando"],
+                   ["-s","backpage","-i","MCW","-i","masoncity"],
+                   ["-s","backpage","-i","MDT","-i","harrisburg"],
+                   ["-s","backpage","-i","MDT","-i","lancaster"],
+                   ["-s","backpage","-i","MDT","-i","york"],
+                   ["-s","backpage","-i","MEI","-i","meridian"],
+                   ["-s","backpage","-i","MEM","-i","memphis"],
+                   ["-s","backpage","-i","MEM","-i","northmiss"],
+                   ["-s","backpage","-i","MFD","-i","huntingtonoh"],
+                   ["-s","backpage","-i","MFD","-i","mansfield"],
+                   ["-s","backpage","-i","MFE","-i","mcallen"],
+                   ["-s","backpage","-i","MFR","-i","medford"],
+                   ["-s","backpage","-i","MGM","-i","montgomery"],
+                   ["-s","backpage","-i","MGW","-i","morgantown"],
+                   ["-s","backpage","-i","MHK","-i","manhattanks"],
+                   ["-s","backpage","-i","MHT","-i","newhampshire"],
+                   ["-s","backpage","-i","MIA","-i","ftlauderdale"],
+                   ["-s","backpage","-i","MIA","-i","miami"],
+                   ["-s","backpage","-i","MIE","-i","muncie"],
+                   ["-s","backpage","-i","MKE","-i","milwaukee"],
+                   ["-s","backpage","-i","MKG","-i","muskegon"],
+                   ["-s","backpage","-i","MKT","-i","mankato"],
+                   ["-s","backpage","-i","MLB","-i","spacecoast"],
+                   ["-s","backpage","-i","MLI","-i","quadcities"],
+                   ["-s","backpage","-i","MLU","-i","monroe"],
+                   ["-s","backpage","-i","MOB","-i","mobile"],
+                   ["-s","backpage","-i","MOD","-i","modesto"],
+                   ["-s","backpage","-i","MOP","-i","centralmich"],
+                   ["-s","backpage","-i","MOT","-i","minot"],
+                   ["-s","backpage","-i","MQI","-i","outerbanks"],
+                   ["-s","backpage","-i","MRY","-i","monterey"],
+                   ["-s","backpage","-i","MSL","-i","shoals"],
+                   ["-s","backpage","-i","MSN","-i","madison"],
+                   ["-s","backpage","-i","MSP","-i","minneapolis"],
+                   ["-s","backpage","-i","MSS","-i","potsdam"],
+                   ["-s","backpage","-i","MSY","-i","houma"],
+                   ["-s","backpage","-i","MSY","-i","neworleans"],
+                   ["-s","backpage","-i","MVW","-i","mtvernon"],
+                   ["-s","backpage","-i","MWA","-i","carbondale"],
+                   ["-s","backpage","-i","MWH","-i","moseslake"],
+                   ["-s","backpage","-i","MYR","-i","myrtlebeach"],
+                   ["-s","backpage","-i","OAJ","-i","easternnc"],
+                   ["-s","backpage","-i","OAK","-i","eastbay"],
+                   ["-s","backpage","-i","OCF","-i","ocala"],
+                   ["-s","backpage","-i","OGD","-i","ogden"],
+                   ["-s","backpage","-i","OGG","-i","maui"],
+                   ["-s","backpage","-i","OKC","-i","oklahomacity"],
+                   ["-s","backpage","-i","OKK","-i","kokomo"],
+                   ["-s","backpage","-i","OMA","-i","omaha"],
+                   ["-s","backpage","-i","ONP","-i","oregoncoast"],
+                   ["-s","backpage","-i","ONT","-i","inlandempire"],
+                   ["-s","backpage","-i","ORD","-i","chicago"],
+                   ["-s","backpage","-i","ORF","-i","chesapeake"],
+                   ["-s","backpage","-i","ORF","-i","hampton"],
+                   ["-s","backpage","-i","ORF","-i","newportnews"],
+                   ["-s","backpage","-i","ORF","-i","norfolk"],
+                   ["-s","backpage","-i","ORF","-i","portsmouth"],
+                   ["-s","backpage","-i","ORF","-i","suffolk"],
+                   ["-s","backpage","-i","ORF","-i","virginiabeach"],
+                   ["-s","backpage","-i","ORH","-i","worcester"],
+                   ["-s","backpage","-i","OWB","-i","owensboro"],
+                   ["-s","backpage","-i","OXR","-i","ventura"],
+                   ["-s","backpage","-i","PAE","-i","everett"],
+                   ["-s","backpage","-i","PAH","-i","westky"],
+                   ["-s","backpage","-i","PBG","-i","plattsburgh"],
+                   ["-s","backpage","-i","PBI","-i","westpalmbeach"],
+                   ["-s","backpage","-i","PDT","-i","eastoregon"],
+                   ["-s","backpage","-i","PDX","-i","portland"],
+                   ["-s","backpage","-i","PHD","-i","tuscarawas"],
+                   ["-s","backpage","-i","PHL","-i","philadelphia"],
+                   ["-s","backpage","-i","PHL","-i","southjersey"],
+                   ["-s","backpage","-i","PHN","-i","porthuron"],
+                   ["-s","backpage","-i","PHX","-i","phoenix"],
+                   ["-s","backpage","-i","PHX","-i","prescott"],
+                   ["-s","backpage","-i","PIA","-i","peoria"],
+                   ["-s","backpage","-i","PIB","-i","hattiesburg"],
+                   ["-s","backpage","-i","PIT","-i","pittsburgh"],
+                   ["-s","backpage","-i","PKB","-i","parkersburg"],
+                   ["-s","backpage","-i","PMD","-i","palmdale"],
+                   ["-s","backpage","-i","PNS","-i","pensacola"],
+                   ["-s","backpage","-i","PSC","-i","tricitieswa"],
+                   ["-s","backpage","-i","PSP","-i","palmsprings"],
+                   ["-s","backpage","-i","PUB","-i","pueblo"],
+                   ["-s","backpage","-i","PUW","-i","pullman"],
+                   ["-s","backpage","-i","PVD","-i","providence"],
+                   ["-s","backpage","-i","PVD","-i","southcoast"],
+                   ["-s","backpage","-i","PVU","-i","provo"],
+                   ["-s","backpage","-i","PWM","-i","maine"],
+                   ["-s","backpage","-i","RAC","-i","racine"],
+                   ["-s","backpage","-i","RAP","-i","southdakota"],
+                   ["-s","backpage","-i","RBG","-i","roseburg"],
+                   ["-s","backpage","-i","RDD","-i","redding"],
+                   ["-s","backpage","-i","RDM","-i","bend"],
+                   ["-s","backpage","-i","RDU","-i","raleigh"],
+                   ["-s","backpage","-i","RFD","-i","rockford"],
+                   ["-s","backpage","-i","RIC","-i","richmond"],
+                   ["-s","backpage","-i","RID","-i","richmondin"],
+                   ["-s","backpage","-i","RMG","-i","nwga"],
+                   ["-s","backpage","-i","RNO","-i","reno"],
+                   ["-s","backpage","-i","ROA","-i","blacksburg"],
+                   ["-s","backpage","-i","ROA","-i","roanoke"],
+                   ["-s","backpage","-i","ROC","-i","rochester"],
+                   ["-s","backpage","-i","ROW","-i","roswell"],
+                   ["-s","backpage","-i","RST","-i","rochestermn"],
+                   ["-s","backpage","-i","RSW","-i","fortmyers"],
+                   ["-s","backpage","-i","RZT","-i","chillicothe"],
+                   ["-s","backpage","-i","SAF","-i","santafe"],
+                   ["-s","backpage","-i","SAN","-i","sandiego"],
+                   ["-s","backpage","-i","SAT","-i","sanantonio"],
+                   ["-s","backpage","-i","SAT","-i","sanantonio"],
+                   ["-s","backpage","-i","SAV","-i","hiltonhead"],
+                   ["-s","backpage","-i","SAV","-i","savannah"],
+                   ["-s","backpage","-i","SBA","-i","santabarbara"],
+                   ["-s","backpage","-i","SBM","-i","sheboygan"],
+                   ["-s","backpage","-i","SBN","-i","southbend"],
+                   ["-s","backpage","-i","SBP","-i","sanluisobispo"],
+                   ["-s","backpage","-i","SBY","-i","easternshore"],
+                   ["-s","backpage","-i","SCE","-i","pennstate"],
+                   ["-s","backpage","-i","SCK","-i","stockton"],
+                   ["-s","backpage","-i","SDF","-i","louisville"],
+                   ["-s","backpage","-i","SEA","-i","seattle"],
+                   ["-s","backpage","-i","SFO","-i","sf"],
+                   ["-s","backpage","-i","SGF","-i","springfieldmo"],
+                   ["-s","backpage","-i","SGU","-i","stgeorge"],
+                   ["-s","backpage","-i","SHV","-i","shreveport"],
+                   ["-s","backpage","-i","SIY","-i","siskiyou"],
+                   ["-s","backpage","-i","SJC","-i","sanjose"],
+                   ["-s","backpage","-i","SKY","-i","sandusky"],
+                   ["-s","backpage","-i","SLC","-i","saltlakecity"],
+                   ["-s","backpage","-i","SLE","-i","salem"],
+                   ["-s","backpage","-i","SMF","-i","sacramento"],
+                   ["-s","backpage","-i","SMX","-i","santamaria"],
+                   ["-s","backpage","-i","SNA","-i","orangecounty"],
+                   ["-s","backpage","-i","SOW","-i","showlow"],
+                   ["-s","backpage","-i","SPI","-i","springfieldil"],
+                   ["-s","backpage","-i","SPS","-i","wichitafalls"],
+                   ["-s","backpage","-i","SQL","-i","sanmateo"],
+                   ["-s","backpage","-i","SRB","-i","cookeville"],
+                   ["-s","backpage","-i","STC","-i","stcloud"],
+                   ["-s","backpage","-i","STJ","-i","stjoseph"],
+                   ["-s","backpage","-i","STL","-i","mattoon"],
+                   ["-s","backpage","-i","STL","-i","stlouis"],
+                   ["-s","backpage","-i","STS","-i","northbay"],
+                   ["-s","backpage","-i","SUX","-i","siouxcity"],
+                   ["-s","backpage","-i","SVE","-i","susanville"],
+                   ["-s","backpage","-i","SWF","-i","hudsonvalley"],
+                   ["-s","backpage","-i","SWO","-i","stillwater"],
+                   ["-s","backpage","-i","SYR","-i","fairfield"],
+                   ["-s","backpage","-i","SYR","-i","syracuse"],
+                   ["-s","backpage","-i","SYR","-i","utica"],
+                   ["-s","backpage","-i","TBN","-i","loz"],
+                   ["-s","backpage","-i","TBR","-i","statesboro"],
+                   ["-s","backpage","-i","TCM","-i","olympia"],
+                   ["-s","backpage","-i","TCM","-i","tacoma"],
+                   ["-s","backpage","-i","TLH","-i","tallahassee"],
+                   ["-s","backpage","-i","TOL","-i","toledo"],
+                   ["-s","backpage","-i","TPA","-i","lakeland"],
+                   ["-s","backpage","-i","TPA","-i","sarasota"],
+                   ["-s","backpage","-i","TPA","-i","tampa"],
+                   ["-s","backpage","-i","TRI","-i","tricities"],
+                   ["-s","backpage","-i","TUL","-i","tulsa"],
+                   ["-s","backpage","-i","TUS","-i","sierravista"],
+                   ["-s","backpage","-i","TUS","-i","tucson"],
+                   ["-s","backpage","-i","TVC","-i","northernmichigan"],
+                   ["-s","backpage","-i","TWF","-i","twinfalls"],
+                   ["-s","backpage","-i","TXK","-i","texarkana"],
+                   ["-s","backpage","-i","TYR","-i","tyler"],
+                   ["-s","backpage","-i","TYS","-i","knoxville"],
+                   ["-s","backpage","-i","UIN","-i","quincy"],
+                   ["-s","backpage","-i","UKI","-i","mendocino"],
+                   ["-s","backpage","-i","UTS","-i","huntsvilletx"],
+                   ["-s","backpage","-i","VCT","-i","victoriatx"],
+                   ["-s","backpage","-i","VIS","-i","visalia"],
+                   ["-s","backpage","-i","VJI","-i","swva"],
+                   ["-s","backpage","-i","VLD","-i","valdosta"],
+                   ["-s","backpage","-i","VRB","-i","treasurecoast"],
+                   ["-s","backpage","-i","VYS","-i","lasalle"],
+                   ["-s","backpage","-i","WBU","-i","boulder"],
+                   ["-s","backpage","-i","WVI","-i","santacruz"],
+                   ["-s","backpage","-i","XNA","-i","fayetteville"],
+                   ["-s","backpage","-i","YKM","-i","yakima"],
+                   ["-s","backpage","-i","YNG","-i","youngstown"],
+                   ["-s","backpage","-i","YUM","-i","yuma"],
+                   ["-s","backpage","-i","YVR","-i","vancouver"],
+                   ["-s","backpage","-i","ZZV","-i","zanesville"]]
+
+def matJanThruJune():
+    for datestamp in genDatestamps(20140111,20140630):
+        for tup in BACKPAGE_SITEKEYS:
+            sitekey = tup[5]
+            print sitekey, datestamp
+            pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
+            if os.path.exists(pth):
+                pass
+            else:
+                urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
+                materializeUrls(urls, pth)
+        
+def matJan():
+    for datestamp in genDatestamps(20140101,20140110):
+        for tup in BACKPAGE_SITEKEYS:
+            sitekey = tup[5]
+            if not sitekey in ['losangeles', 'sanfernandovalley', 'longbeach', 'sangabrielvalley', 'palmdale', 'orangecounty', 'inlandempire']:
+                print sitekey, datestamp
+                urls = genUrls(datestamps=[datestamp], sitekeys=[sitekey])
+                materializeUrls(urls, "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp))
+
+def matJan2():
+    for datestamp in genDatestamps(20140101,20140110):
+        with open('/tmp/all%d.urls' % datestamp, 'r') as f:
+            allUrls = f.readlines()
+        for tup in BACKPAGE_SITEKEYS:
+            sitekey = tup[5]
+            pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
+            if os.path.exists(pth):
+                continue
+            if not sitekey in ['losangeles', 'sanfernandovalley', 'longbeach', 'sangabrielvalley', 'palmdale', 'orangecounty', 'inlandempire']:
+                sitekeyUrls = []
+                for url in allUrls:
+                    fields = url.split('/')
+                    host = fields[6]
+                    urlSitekey = host.split('.')[0]
+                    if urlSitekey == sitekey:
+                        sitekeyUrls.append(url)
+                print sitekey, datestamp
+                materializeUrls(sitekeyUrls, pth)
+
+def matJanThruJune2():
+    for datestamp in genDatestamps(20140111,20140601):
+        with open('/tmp/all%d.urls' % datestamp, 'r') as f:
+            allUrls = f.readlines()
+        for tup in BACKPAGE_SITEKEYS:
+            sitekey = tup[5]
+            pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
+            if os.path.exists(pth):
+                continue
+            sitekeyUrls = []
+            for url in allUrls:
+                fields = url.split('/')
+                host = fields[6]
+                urlSitekey = host.split('.')[0]
+                if urlSitekey == sitekey:
+                    sitekeyUrls.append(url)
+            print sitekey, datestamp
+            materializeUrls(sitekeyUrls, pth)
+
+
