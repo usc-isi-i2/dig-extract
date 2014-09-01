@@ -3231,7 +3231,7 @@ def main(argv=None):
                     bodyText['phoneNumbers'] = phoneNumbers
                     allPhoneNumbers.extend(phoneNumbers)
             
-            post['phoneNumbers'] = uniqueStable(allPhoneNumbers)
+                post['phoneNumbers'] = uniqueStable(allPhoneNumbers)
 
             js = json.dumps(post, sort_keys=True, indent=None)
             print >> sys.stdout, "%s\t%s" % (url, js)
