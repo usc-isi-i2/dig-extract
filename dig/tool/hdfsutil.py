@@ -13,6 +13,8 @@ from hadoop.io import SequenceFile
 import datetime
 import simplejson as json
 import re
+import time
+import socket
 
 # corresponds to r25784 from memex/toddler svn repository
 
@@ -1275,7 +1277,7 @@ def matJan2():
                 materializeUrls(sitekeyUrls, pth)
 
 def matJanThruJune2():
-    for datestamp in genDatestamps(20140111,20140601)
+    for datestamp in genDatestamps(20140111,20140601):
         with open('/tmp/all%d.urls' % datestamp, 'r') as f:
             allUrls = f.readlines()
         for tup in BACKPAGE_SITEKEYS:
