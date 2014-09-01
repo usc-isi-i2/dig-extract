@@ -260,18 +260,6 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxA
                             #     print """bs.put_block_blob_from_path(%s, %s, %s, x_ms_blob_content_type='text/html')""" % (mycontainer, destination, pathname)
 
                             try:
-<<<<<<< HEAD
-                                transferred = False
-                                remainingAttempts = maxAttempts
-                                while not transferred and remainingAttempts > 0:
-                                    try: 
-                                        bs.put_block_blob_from_path(mycontainer, destination, pathname,
-                                                                    x_ms_blob_content_type='text/html')
-                                        break
-                                    except socket.error as e: 
-                                        print >> sys.stderr, "Retry putting (%s more) %s" % (remainingAttempts, destination)
-                                        remainingAttempts -= 1
-=======
                                 success = False
                                 remainingAttempts = maxAttempts
                                 while not success and remainingAttempts>0:
@@ -284,7 +272,6 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxA
                                         remainingAttempts -= 1
                                         print >> sys.stderr, "Uploading %s failed, sleep 5 sec, %d more tries" % (pathname, remainingAttempts)
                                         time.sleep(5)
->>>>>>> 3321a5e92de6b44a7b3c44da12e2d5228bbaa629
                             except WindowsAzureError as e:
                                 print >> sys.stderr, "Azure failure [%r], skipping"
                             i += 1
