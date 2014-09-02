@@ -3208,7 +3208,7 @@ def main(argv=None):
                 allPhoneNumbers = []
 
                 titleText = post.get('titleText')
-                if titleText:
+                if titleText and titleText.get('content'):
                     extr = PhoneExtractor(titleText['content'])
                     phoneNumbers = extr.extractPhoneNumbers()
                     # store locally with the specific text
@@ -3216,7 +3216,7 @@ def main(argv=None):
                     allPhoneNumbers.extend(phoneNumbers)
 
                 locationText = post.get('locationText')
-                if locationText:
+                if locationText and locationText.get('content'):
                     extr = PhoneExtractor(locationText['content'])
                     phoneNumbers = extr.extractPhoneNumbers()
                     # store locally with the specific text
@@ -3224,7 +3224,7 @@ def main(argv=None):
                     allPhoneNumbers.extend(phoneNumbers)
 
                 bodyText = post.get('bodyText')
-                if bodyText:
+                if bodyText and bodyText.get('content'):
                     extr = PhoneExtractor(bodyText['content'])
                     phoneNumbers = extr.extractPhoneNumbers()
                     # store locally with the specific text
