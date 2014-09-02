@@ -779,7 +779,6 @@ psUrls = ["https://karmadigstorage.blob.core.windows.net/arch/churl/20140101/oly
           "https://karmadigstorage.blob.core.windows.net/arch/churl/20140103/bellingham.backpage.com/FemaleEscorts/rated-pleasure-x-service-27/15191058",
           "https://karmadigstorage.blob.core.windows.net/arch/churl/20140103/bellingham.backpage.com/FemaleEscorts/the-best-of-the-bestgrgeus-thiick-blondesmk-n-ht-26/15161614"]
 
-
 # materializeUrls(testUrls, "/mnt/resource/staging/test1.seq")
 # materializeUrls(genUrls(datestamps=[20140101]), "/mnt/resource/staging/20140101.seq")
 
@@ -1278,21 +1277,24 @@ def matJan2():
 
 def matJanThruJune2():
     for datestamp in genDatestamps(20140111,20140601):
-        with open('/tmp/all%d.urls' % datestamp, 'r') as f:
-            allUrls = f.readlines()
-        for tup in BACKPAGE_SITEKEYS:
-            sitekey = tup[5]
-            pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
-            if os.path.exists(pth):
-                continue
-            sitekeyUrls = []
-            for url in allUrls:
-                fields = url.split('/')
-                host = fields[6]
-                urlSitekey = host.split('.')[0]
-                if urlSitekey == sitekey:
-                    sitekeyUrls.append(url)
-            print sitekey, datestamp
-            materializeUrls(sitekeyUrls, pth)
+        try:
+            with open('/tmp/all%d.urls' % datestamp, 'r') as f:
+                allUrls = f.readlines()
+            for tup in BACKPAGE_SITEKEYS:
+                sitekey = tup[5]
+                pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
+                if os.path.exists(pth):
+                    continue
+                sitekeyUrls = []
+                for url in allUrls:
+                    fields = url.split('/')
+                    host = fields[6]
+                    urlSitekey = host.split('.')[0]
+                    if urlSitekey == sitekey:
+                        sitekeyUrls.append(url)
+                print sitekey, datestamp
+                materializeUrls(sitekeyUrls, pth)
+        except Exception as e:
+            print "no cached URLs for %s" % datestamp
 
 
