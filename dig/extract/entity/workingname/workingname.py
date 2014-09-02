@@ -10114,7 +10114,7 @@ def main(argv=None):
             post = json.loads(rawText)
             if isinstance(post, dict):
                 bodyText = post.get('bodyText')
-                if bodyText:
+                if bodyText and bodyText.get('tokens'):
                     nameScanner = PatternScanner(bodyText['tokens'], 'names')
                     # arguably we should only add novel matches
                     # implemention would be to represent/convert 

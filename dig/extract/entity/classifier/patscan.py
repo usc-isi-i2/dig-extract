@@ -461,7 +461,7 @@ def main(argv=None):
             post = json.loads(rawText)
             if isinstance(post, dict):
                 titleText = post.get('titleText')
-                if titleText:
+                if titleText and titleText.get('tokens'):
                     scanner = PatternScanner(titleText['tokens'], category)
                     # arguably we should only add novel matches
                     # implemention would be to represent/convert 
@@ -485,7 +485,7 @@ def main(argv=None):
                     # or should we just not have any such entry
                     titleText['patternScanMatches'] = titlePatternScanMatches
                 locationText = post.get('locationText')
-                if locationText:
+                if locationText and locationText.get('tokens'):
                     scanner = PatternScanner(locationText['tokens'], category)
                     # arguably we should only add novel matches
                     # implemention would be to represent/convert 
@@ -509,7 +509,7 @@ def main(argv=None):
                     # or should we just not have any such entry
                     locationText['patternScanMatches'] = locationPatternScanMatches
                 bodyText = post.get('bodyText')
-                if bodyText:
+                if bodyText and bodyText.get('tokens'):
                     scanner = PatternScanner(bodyText['tokens'], category)
                     # arguably we should only add novel matches
                     # implemention would be to represent/convert 

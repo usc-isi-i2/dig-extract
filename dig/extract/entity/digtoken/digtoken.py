@@ -148,17 +148,23 @@ def main(argv=None):
             post = json.loads(rawText)
             if isinstance(post, dict):
                 titleText = post.get('titleText')
-                if titleText:
+                if titleText and titleText.get('content'):
                     tzr = Tokenizer(titleText['content'])
                     titleText['tokens'] = [t for t in tzr.genTokens()]
+                else:
+                    print >> sys.stderr, "No location text for %r" % url
                 locationText = post.get('locationText')
-                if locationText:
+                if locationText and locationText.get('content'):
                     tzr = Tokenizer(locationText['content'])
                     locationText['tokens'] = [t for t in tzr.genTokens()]
+                else:
+                    print >> sys.stderr, "No title text for %r" % url
                 bodyText = post.get('bodyText')
-                if bodyText:
+                if bodyText and bodyText.get('content'):
                     tzr = Tokenizer(bodyText['content'])
                     bodyText['tokens'] = [t for t in tzr.genTokens()]
+                else:
+                    print >> sys.stderr, "No body text for %r" % url
             js = json.dumps(post, sort_keys=True, indent=None)
             print >> sys.stdout, "%s\t%s" % (url, js)
 
