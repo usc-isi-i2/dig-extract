@@ -13,6 +13,7 @@ from hadoop.io import SequenceFile
 import datetime
 import simplejson as json
 import re
+import time
 import socket
 
 # corresponds to r25784 from memex/toddler svn repository
@@ -777,7 +778,6 @@ psUrls = ["https://karmadigstorage.blob.core.windows.net/arch/churl/20140101/oly
           "https://karmadigstorage.blob.core.windows.net/arch/churl/20140103/bellingham.backpage.com/FemaleEscorts/luscious-lexi-_-23/10899702",
           "https://karmadigstorage.blob.core.windows.net/arch/churl/20140103/bellingham.backpage.com/FemaleEscorts/rated-pleasure-x-service-27/15191058",
           "https://karmadigstorage.blob.core.windows.net/arch/churl/20140103/bellingham.backpage.com/FemaleEscorts/the-best-of-the-bestgrgeus-thiick-blondesmk-n-ht-26/15161614"]
-
 
 # materializeUrls(testUrls, "/mnt/resource/staging/test1.seq")
 # materializeUrls(genUrls(datestamps=[20140101]), "/mnt/resource/staging/20140101.seq")
