@@ -36,7 +36,7 @@ REVISION = "$Revision: 25782 $".replace("$","")
 #   crosslinks: (url1, url2)
 
 def loadMarkets():
-  return json.loads(resource_string(__name__, 'data/market.json'))
+  return json.loads(resource_string(__name__, 'market.json'))
 
 MARKETS = None
 

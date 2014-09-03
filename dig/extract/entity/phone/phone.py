@@ -34,7 +34,7 @@ Stable: objects appear in output in order of first appearance in input"""
     return unique
 
 def loadAreaCodes():
-  return json.loads(resource_string(__name__, 'data/areacode.json'))
+  return json.loads(resource_string(__name__, 'areacode.json'))
     
 AREACODES = None
 
