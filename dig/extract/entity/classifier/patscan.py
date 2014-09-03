@@ -22,9 +22,9 @@ from itertools import izip, chain, izip_longest
 
 # these two come fom $PYTHONPATH containing directory pymod
 from cstokensearcher import CaseSensitiveTokenSearcher as TokenSearcher
-from util import interpretCmdLine
+from dig.pymod.util import interpretCmdLine
 # for debug only
-from util import echo, info
+from dig.pymod.util import echo, info
 
 VERSION = '0.0.1'
 __version__ = VERSION

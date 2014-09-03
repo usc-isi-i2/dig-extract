@@ -20,8 +20,8 @@ import getopt
 import watdb
 from watdb import Watdb
 import re
-from util import asStream
-import util
+from dig.pymod.util import asStream
+import dig.pymod.util
 
 from watlog import watlog
 logger = watlog("wat.bphone")

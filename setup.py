@@ -17,5 +17,8 @@ setup(
     author_email='andrew.philpot@gmail.com',
     url='https://github.com/InformationIntegrationGroup/dig-extract',
     license=license,
-    packages=find_packages(exclude=('tests', 'docs'))
-)
+    packages=find_packages(exclude=('tests', 'docs')),
+    package_data={'dig': ['dig/extract/entity/phone/data/areacode.json',
+                          'dig/extract/page/data/market.json']
+                  }
+    )

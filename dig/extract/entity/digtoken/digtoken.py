@@ -21,10 +21,10 @@ __version__ = VERSION
 import sys, os, re
 import simplejson as json
 import argparse
-import util
-from util import interpretCmdLine
+import dig.pymod.util
+from dig.pymod.util import interpretCmdLine
 # for debug only
-from util import echo
+from dig.pymod.util import echo
 
 # may be preferable to store this in /usr/share, etc.
 # see nltk.download()

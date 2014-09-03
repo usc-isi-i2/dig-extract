@@ -2,8 +2,8 @@ from azure import *
 from azure.storage import *
 import os
 import urllib2
-import util
-from util import elapsed, genDatestamps
+import dig.pymod.util
+from dig.pymod.util import elapsed, genDatestamps
 from glob import iglob
 import subprocess
 import shutil

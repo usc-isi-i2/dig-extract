@@ -17,8 +17,8 @@ import sys
 import getopt
 from objcode import ObjectDecoder
 import os
-import util
-from util import echo
+import dig.pymod.util
+from dig.pymod.util import echo
 
 VERSION = '0.5'
 __version__ = VERSION

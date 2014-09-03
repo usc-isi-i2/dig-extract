@@ -8,7 +8,7 @@ dig.extract.page.page
 @version 4.0
 '''
 
-from util import echo
+from dig.pymod.util import echo
 
 # schema is
 # post(url, market[faa_code], sitekey[e.g., "sanfernandovalley"], age, sitekey, created)

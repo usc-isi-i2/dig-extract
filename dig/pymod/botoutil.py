@@ -15,7 +15,7 @@ Options:
 
 import sys
 import os
-import util
+import dig.pymod.util
 # import site
 
 import boto

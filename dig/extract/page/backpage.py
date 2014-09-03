@@ -17,12 +17,12 @@ from bs4 import BeautifulSoup as bs
 import simplejson as json
 import argparse
 from dig.extract.page.page import Page
-from util import interpretCmdLine, ensureDirectoriesExist
+from dig.pymod.util import interpretCmdLine, ensureDirectoriesExist
 from pkg_resources import resource_string
 # for debug only
 # for some reason the utf8print is not found here
-# from util import echo, abbrevString, emittable, utf8print
-# from util import echo, abbrevString, emittable
+# from dig.pymod.util import echo, abbrevString, emittable, utf8print
+# from dig.pymod.util import echo, abbrevString, emittable
 
 VERSION = "4.5"
 __version__ = VERSION

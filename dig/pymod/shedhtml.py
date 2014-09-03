@@ -15,8 +15,8 @@ Options:
 import sys
 from HTMLParser import HTMLParser, HTMLParseError
 import StringIO
-from util import asStream
-import util
+from dig.pymod.util import asStream
+import dig.pymod.util
 import codecs
 
 VERSION = '1.1'

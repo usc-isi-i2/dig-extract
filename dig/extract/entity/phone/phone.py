@@ -14,10 +14,10 @@ dig.extract.entity.phone
 import sys, os, re
 import simplejson as json
 import argparse
-from util import interpretCmdLine
+from dig.pymod.util import interpretCmdLine
 from pkg_resources import resource_string
 # for debug only
-from util import echo
+from dig.pymod.util import echo
 
 VERSION = "1.2"
 __version__ = VERSION
