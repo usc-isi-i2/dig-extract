@@ -22,7 +22,7 @@ from pkg_resources import resource_string, resource_exists
 # for debug only
 # for some reason the utf8print is not found here
 # from dig.pymod.util import echo, abbrevString, emittable, utf8print
-# from dig.pymod.util import echo, abbrevString, emittable
+from dig.pymod.util import echo, abbrevString, emittable
 
 VERSION = "4.5"
 __version__ = VERSION
@@ -40,11 +40,12 @@ MARKETS = None
 def loadMarkets():
   global MARKETS
   from dig.extract.page.market import MARKETS
+  return MARKETS
 
 def ensureMarkets():
     global MARKETS
     if not MARKETS:
-        MARKETS = loadMarkets()
+        loadMarkets()
     return MARKETS
 
 class BackpagePage(Page):
