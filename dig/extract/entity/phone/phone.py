@@ -32,16 +32,18 @@ Stable: objects appear in output in order of first appearance in input"""
             seen.add(item)
             unique.append(item)
     return unique
-
-def loadAreaCodes():
-  return json.loads(resource_string(__name__, 'areacode.json'))
     
 AREACODES = None
+
+def loadAreacodes():
+  global AREACODES
+  from dig.extract.entity.phone.areacode import AREACODES
+  return AREACODES
 
 def ensureAreaCodes():
     global AREACODES
     if not AREACODES:
-        AREACODES = loadAreaCodes()
+        loadAreaCodes()
     return AREACODES
 
 class PhoneExtractor(object):
