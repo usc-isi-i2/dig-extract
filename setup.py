@@ -18,7 +18,7 @@ setup(
     url='https://github.com/InformationIntegrationGroup/dig-extract',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
-    package_data={'dig': ['dig/extract/entity/phone/areacode.json',
-                          'dig/extract/page/market.json']
+    package_data={'dig': ['extract/entity/phone/areacode.json',
+                          'extract/page/market.json']
                   }
     )
