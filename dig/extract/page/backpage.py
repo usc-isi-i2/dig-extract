@@ -18,7 +18,7 @@ import simplejson as json
 import argparse
 from dig.extract.page.page import Page
 from dig.pymod.util import interpretCmdLine, ensureDirectoriesExist
-from pkg_resources import resource_string
+from pkg_resources import resource_string, resource_exists
 # for debug only
 # for some reason the utf8print is not found here
 # from dig.pymod.util import echo, abbrevString, emittable, utf8print
@@ -35,10 +35,11 @@ REVISION = "$Revision: 25782 $".replace("$","")
 #   images: image(url)
 #   crosslinks: (url1, url2)
 
-def loadMarkets():
-  return json.loads(resource_string(__name__, 'market.json'))
-
 MARKETS = None
+
+def loadMarkets():
+  global MARKETS
+  from dig.extract.page.market import MARKETS
 
 def ensureMarkets():
     global MARKETS
