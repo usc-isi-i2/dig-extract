@@ -4303,3 +4303,32 @@ def mm(month, sitekeys=LA_AREA_SITEKEYS):
         print >> sys.stderr, "%s %s" % (sitekey, month), 
         count = materializeUrls(urls, destFile, sequence=True)
         print >> sys.stderr, "%s urls" % count
+
+mcds=[]
+mcds.extend([x for x in util.genDatestamps(20140312,20140319)])
+mcds.extend([x for x in util.genDatestamps(20140409,20140415)])
+mcds.extend([x for x in util.genDatestamps(20140426,20140430)])
+mcds.extend([x for x in util.genDatestamps(20140512,20140515)])
+
+def matCatchup(datestamps):
+    for datestamp in datestamps:
+        allUrls = []
+        try:
+            with open('/mnt/data/dbdata/urls%d.txt' % datestamp, 'r') as f:
+                allUrls = f.readlines()
+            for tup in BACKPAGE_SITEKEYS:
+                sitekey = tup[5]
+                pth = "/mnt/resource/staging/%s__%s.seq" % (sitekey, datestamp)
+                if os.path.exists(pth):
+                    continue
+                sitekeyUrls = []
+                for url in allUrls:
+                    fields = url.split('/')
+                    host = fields[6]
+                    urlSitekey = host.split('.')[0]
+                    if urlSitekey == sitekey:
+                        sitekeyUrls.append(url)
+                print sitekey, datestamp
+                materializeUrls(sitekeyUrls, pth)
+        except Exception as e:
+            print "no cached URLs for %s" % datestamp
