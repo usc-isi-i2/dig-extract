@@ -2,7 +2,7 @@ from azure import *
 from azure.storage import *
 import os
 import urllib2
-import dig.pymod.util
+import dig.pymod.util as util
 from dig.pymod.util import elapsed, genDatestamps
 from glob import iglob
 import subprocess
@@ -380,6 +380,7 @@ def genUrls(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, sitekeys=SITEKEYS):
         yield blob.url
 
 def materializeUrls(urls, destFile, sequence=True):
+    count = 0
     start = datetime.datetime.now()
     if sequence:
         writer = SequenceFile.createWriter(destFile, Text, Text)
@@ -395,6 +396,7 @@ def materializeUrls(urls, destFile, sequence=True):
                 # this is the only thing that worked
                 value.set(Text.decode(json.dumps(util.chunkedFetchUrlText(url))))
                 writer.append(key, value)
+                count += 1
             except Exception as e:
                 print >> sys.stderr, "Giving up [%s] on fetching %s" % (e, url)
                 continue
@@ -404,6 +406,7 @@ def materializeUrls(urls, destFile, sequence=True):
                 value = json.dumps(util.chunkedFetchUrlText(url))
                 line = "%s\t%s" % (url, value)
                 print >> writer, line
+                count += 1
             except Exception as e:
                 print >> sys.stderr, "Giving up [%s] on fetching %s" % (e, url)
                 continue
@@ -411,6 +414,7 @@ def materializeUrls(urls, destFile, sequence=True):
     end = datetime.datetime.now()
     delta = end - start
     print >> sys.stderr, "ELAPSED materializeUrls is %s" % elapsed(delta)
+    return count
 
 def materializeTextUrls(urls, destFile, sequence=True):
     start = datetime.datetime.now()
@@ -4253,3 +4257,49 @@ def matJanThruJune2():
             print "no cached URLs for %s" % datestamp
 
 
+def datestampsInMonth(month):
+    start = int("%s01" % month)
+    m = month % 100
+    if m in [9, 4, 6, 11]:
+        # september, april, june, november
+        end = int("%s30" % month)
+        return [d for d in util.genDatestamps(start, end)]
+    elif m in [1, 3, 5, 7, 8, 10, 12]:
+        # january, march, may, july, august, october, december
+        end = int("%s31" % month)
+        return [d for d in util.genDatestamps(start, end)]
+    else:
+        # february
+        try:
+            end = int("%s29" % month)
+            return [d for d in util.genDatestamps(start, end)]
+        except ValueError as e:
+            end = int("%s28" % month)
+            return [d for d in util.genDatestamps(start, end)]            
+
+def urlsByMonthAndSitekey(month, sitekey):
+    urls = []
+    for datestamp in datestampsInMonth(month):
+        # with open('/tmp/all%d.urls' % datestamp, 'r') as f:
+        with open('/mnt/data/dbdata/urls%d.txt' % datestamp, 'r') as f:
+            datestampAllUrls = f.readlines()
+            for url in datestampAllUrls:
+                fields = url.split('/')
+                host = fields[6]
+                urlSitekey = host.split('.')[0]
+                if urlSitekey == sitekey:
+                    urls.append(url)
+    return urls
+
+def u (m,s):
+    return urlsByMonthAndSitekey(m, s)
+
+LA_AREA_SITEKEYS = ['losangeles', 'sanfernandovalley', 'longbeach', 'sangabrielvalley', 'palmdale', 'orangecounty', 'inlandempire']
+
+def mm(month, sitekeys=LA_AREA_SITEKEYS):
+    for sitekey in sitekeys:
+        urls = urlsByMonthAndSitekey(month, sitekey)
+        destFile = "/mnt/resource/staging/monthly/%s_%s.seq" % (sitekey, month)
+        print >> sys.stderr, "%s %s" % (sitekey, month), 
+        count = materializeUrls(urls, destFile, sequence=True)
+        print >> sys.stderr, "%s urls" % count
