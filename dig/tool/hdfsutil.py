@@ -4298,6 +4298,9 @@ LA_AREA_SITEKEYS = ['losangeles', 'sanfernandovalley', 'longbeach', 'sangabrielv
 
 EXTRA_SITEKEYS = ['sandiego', 'lasvegas']
 
+WA_SITEKEYS = ['seattle', 'tacoma', 'olympia', 'bellingham', 'mtvernon']
+SF_SITEKEYS = ['sf', 'eastbay', 'sanmateo', 'sanjose', 'northbay', 'santacruz']
+
 def mm(month, sitekeys=LA_AREA_SITEKEYS):
     for sitekey in sitekeys:
         urls = urlsByMonthAndSitekey(month, sitekey)
@@ -4351,3 +4354,12 @@ def mmsba():
     for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
         mm(month, ['santabarbara'])
 
+def mmsf():
+    for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
+        for sitekey in SF_SITEKEYS:
+            mm(month, sitekey)
+
+def mmwa():
+    for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
+        for sitekey in WA_SITEKEYS:
+            mm(month, sitekey)
