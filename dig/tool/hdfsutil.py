@@ -4337,9 +4337,9 @@ def matCatchup(datestamps):
 
 def mmsd():
     for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
-        mm(month, 'sandiego')
+        mm(month, ['sandiego'])
 
 def mmlv():
     for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
-        mm(month, 'lasvegas')
+        mm(month, ['lasvegas'])
 
