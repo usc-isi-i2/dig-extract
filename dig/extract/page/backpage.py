@@ -46,6 +46,7 @@ def ensureMarkets():
     global MARKETS
     if not MARKETS:
         loadMarkets()
+    print >> sys.stderr, "There are %d markets" % len(MARKETS)
     return MARKETS
 
 class BackpagePage(Page):
@@ -211,6 +212,7 @@ def main(argv=None):
     # specific to first url scheme
     urlregex = re.compile(r"""https://karmadigstorage.blob.core.windows.net/arch/([a-zA-Z0-9]+)/(\d{8})/.*\.backpage\.com/(.*)""")
     rawText = ""
+    processed = 0
     for line in sys.stdin:
         # print line
         m = lineregex.match(line) 
@@ -231,7 +233,9 @@ def main(argv=None):
                                    crawlAgent=crawlAgent,
                                    datestamp=int(datestamp))
                     page.process()
+                    processed += 1
                     # print "%s\t%s" % (url, len(pageStr))
+    print >> sys.stderr, "dig.extract.page.backpage processed %d records" % processed
 
 # call main() if this is run as standalone
 if __name__ == "__main__":
