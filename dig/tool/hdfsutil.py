@@ -4296,6 +4296,8 @@ def u (m,s):
 
 LA_AREA_SITEKEYS = ['losangeles', 'sanfernandovalley', 'longbeach', 'sangabrielvalley', 'palmdale', 'orangecounty', 'inlandempire']
 
+EXTRA_SITEKEYS = ['sandiego', 'lasvegas']
+
 def mm(month, sitekeys=LA_AREA_SITEKEYS):
     for sitekey in sitekeys:
         urls = urlsByMonthAndSitekey(month, sitekey)
@@ -4332,3 +4334,12 @@ def matCatchup(datestamps):
                 materializeUrls(sitekeyUrls, pth)
         except Exception as e:
             print "no cached URLs for %s" % datestamp
+
+def mmsd():
+    for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
+        mm(month, 'sandiego')
+
+def mmlv():
+    for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
+        mm(month, 'lasvegas')
+
