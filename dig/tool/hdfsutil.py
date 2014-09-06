@@ -4367,7 +4367,7 @@ def mmwa():
 def mmtier(tier):
     for sitekey in tier:
         for month in [201401, 201402, 201403, 201404, 201405, 201406,
-                      201407, 201408]:
+                      201407]:
             mm(month, [sitekey])
 
 TIER1_SITEKEYS = ['jerseyshore',
