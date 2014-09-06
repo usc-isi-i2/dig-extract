@@ -17,7 +17,7 @@
 
 CITIES="inland%20empire las%20vegas los%20angeles san%20diego"
 SOLR_URL_PREFIX="http://localhost:8983/solr/memex/select?q="
-SOLR_URL_POSTFIX="&indent=on&facet=on&facet.field=type&start=0&rows=20000"
+SOLR_URL_POSTFIX="&indent=on&facet=on&facet.field=type&start=0&rows=20000&wt=json"
 
 for city in $CITIES; do
   echo "exporting $city.json"
