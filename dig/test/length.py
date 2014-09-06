@@ -13,12 +13,9 @@ dig.test.length
 
 import sys, os, re, time, datetime
 from time import localtime, mktime, gmtime
-from bs4 import BeautifulSoup as bs
 import simplejson as json
 import argparse
-from dig.extract.page.page import Page
 from dig.pymod.util import interpretCmdLine, ensureDirectoriesExist
-from pkg_resources import resource_string, resource_exists
 # for debug only
 # for some reason the utf8print is not found here
 # from dig.pymod.util import echo, abbrevString, emittable, utf8print
@@ -35,13 +32,13 @@ def main(argv=None):
     # parser.add_argument()
     args = parser.parse_args(args)
     
-    pageCls = BackpagePage
     lineregex = re.compile(r"""(^.+)\t(.*)""")
     # specific to first url scheme
     urlregex = re.compile(r"""https://karmadigstorage.blob.core.windows.net/arch/([a-zA-Z0-9]+)/(\d{8})/.*\.backpage\.com/(.*)""")
     payload = ""
     count = 0
     total = 0
+    url = ""
     for line in sys.stdin:
         # print line
         m = lineregex.match(line) 
@@ -52,25 +49,9 @@ def main(argv=None):
             print >> sys.stdout, "%s\t%s" % (url, increment)
             count += 1
             total += increment
-            
-
-            urlMatch = urlregex.match(url)
-            if urlMatch:
-                crawlAgent = urlMatch.group(1)
-                datestamp = urlMatch.group(2)
-                tail = urlMatch.group(3)
-                if "index.html" in tail:
-                    pass
-                else:
-                    pageStr = json.loads(payload)
-                    page = pageCls(url=url,
-                                   content=pageStr,
-                                   crawlAgent=crawlAgent,
-                                   datestamp=int(datestamp))
-                    page.process()
-                    processed += 1
-                    # print "%s\t%s" % (url, len(pageStr))
-    print >> sys.stderr, "dig.extract.page.backpage processed %d records" % processed
+    print >> sys.stdout, "%s\ttotal=%s" % (url, total)
+    print >> sys.stdout, "%s\tcount=%s" % (url, count)
+    print >> sys.stderr, "dig.test.length processed %d records" % count
 
 # call main() if this is run as standalone
 if __name__ == "__main__":
