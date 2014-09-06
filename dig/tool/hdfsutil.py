@@ -4343,3 +4343,11 @@ def mmlv():
     for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
         mm(month, ['lasvegas'])
 
+def mmpdx():
+    for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
+        mm(month, ['portland'])
+
+def mmsba():
+    for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
+        mm(month, ['santabarbara'])
+
