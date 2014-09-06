@@ -4346,6 +4346,14 @@ def mmlv():
     for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
         mm(month, ['lasvegas'])
 
+def mmpdx():
+    for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
+        mm(month, ['portland'])
+
+def mmsba():
+    for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
+        mm(month, ['santabarbara'])
+
 def mmsf():
     for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
         for sitekey in SF_SITEKEYS:
@@ -4355,3 +4363,123 @@ def mmwa():
     for month in [201401, 201402, 201403, 201404, 201405, 201406, 201407]:
         for sitekey in WA_SITEKEYS:
             mm(month, [sitekey])
+
+def mmtier(tier):
+    for sitekey in tier:
+        for month in [201401, 201402, 201403, 201404, 201405, 201406,
+                      201407, 201408]:
+            mm(month, [sitekey])
+
+TIER1_SITEKEYS = ['jerseyshore',
+                  'anchorage',
+                  'atlanta',
+                  'boston',
+                  'baltimore',
+                  'arlington',
+                  'dallas',
+                  'denton',
+                  'fortworth',
+                  'detroit',
+                  'monroemi',
+                  'dc',
+                  'fredericksburg',
+                  'nova',
+                  'southernmaryland',
+                  'washingtondc',
+                  'galveston',
+                  'houston',
+                  # 'lasvegas',
+                  # 'losangeles',
+                  'kc',
+                  'ftlauderdale',
+                  'miami',
+                  'omaha',
+                  # 'inlandempire',
+                  'everett',
+                  'portland',
+                  'reno',
+                  # 'sandiego',
+                  'sanantonio',
+                  # 'seattle',
+                  'shreveport',
+                  'sacramento',
+                  # 'orangecounty',
+                  # 'olympia',
+                  # 'tacoma',
+                  'toledo',
+                  'lakeland',
+                  'sarasota',
+                  'tampa']
+
+TIER2_SITEKEYS = ['phoenix',
+                  'prescott',
+                  # 'sf',
+                  'denver',
+                  'newhaven',
+                  'newlondon',
+                  'jacksonville',
+                  'staugustine',
+                  'honolulu',
+                  'chicago',
+                  'indianapolis',
+                  'houma',
+                  'neworleans',
+                  'annarbor',
+                  'mattoon',
+                  'stlouis',
+                  'charlotte',
+                  'northjersey',
+                  'bronx',
+                  'brooklyn',
+                  'longisland',
+                  'manhattan',
+                  'newyork',
+                  'queens',
+                  'statenisland',
+                  'cleveland',
+                  'cincinnati',
+                  'oklahomacity',
+                  'philadelphia',
+                  'southjersey',
+                  'memphis',
+                  'northmiss']
+
+TIER4_SITEKEYS = ['humboldt',
+                  'bakersfield',
+                  # 'sanfernandovalley',
+                  'chico',
+                  # 'sangabrielvalley',
+                  'fresno',
+                  'imperial',
+                  # 'longbeach',
+                  'merced',
+                  'modesto',
+                  'monterey',
+                  # 'eastbay',
+                  'ventura',
+                  # 'palmdale',
+                  'palmsprings',
+                  'redding',
+                  'santabarbara',
+                  'sanluisobispo',
+                  'stockton',
+                  'siskiyou',
+                  # 'sanjose',
+                  'santamaria',
+                  # 'sanmateo',
+                  # 'northbay',
+                  'susanville',
+                  'mendocino',
+                  'visalia',
+                  # 'santacruz',
+                  'yuma']
+
+TIER5_SITKEYS = [# 'bellingham',
+                 'wenatchee',
+                 'spokane',
+                 # 'mtvernon',
+                 'moseslake',
+                 'tricitieswa',
+                 'pullman',
+                 'yakima']
+
