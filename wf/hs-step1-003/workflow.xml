@@ -1,0 +1,102 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<workflow-app name="hs-total-002" xmlns="uri:oozie:workflow:0.4">
+  <global>
+            <configuration>
+                <property>
+                    <name>jobTracker</name>
+                    <value>karma-dig-3.hdp.azure.karma.isi.edu:8050</value>
+                </property>
+            </configuration>
+  </global>
+    <start to="de_page_backpage"/>
+    <action name="de_page_backpage">
+        <map-reduce>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.mapper.new-api</name>
+                    <value>true</value>
+                </property>
+                <property>
+                    <name>mapred.reducer.new-api</name>
+                    <value>true</value>
+                </property>
+                <!-- <property> -->
+                <!--     <name>mapreduce.job.map.class</name> -->
+                <!--     <value>edu.isi.karma.mapreduce.driver.N3Mapper</value> -->
+                <!-- </property> -->
+                <!-- <property> -->
+                <!--     <name>mapreduce.job.reduce.class</name> -->
+                <!--     <value>edu.isi.karma.mapreduce.driver.N3Reducer</value> -->
+                <!-- </property> -->
+                <property>
+                    <name>mapreduce.map.output.key.class</name>
+                    <value>org.apache.hadoop.io.Text</value>
+                </property>
+                <property>
+                    <name>mapreduce.map.output.value.class</name>
+                    <value>org.apache.hadoop.io.Text</value>
+                </property>
+                <property>
+                    <name>mapred.input.key.class</name>
+                    <value>org.apache.hadoop.io.Text</value>
+                </property>
+                <property>
+                    <name>mapred.input.value.class</name>
+                    <value>org.apache.hadoop.io.Text</value>
+                </property>
+                <property>
+                    <name>mapreduce.inputformat.class</name>
+                    <value>org.apache.hadoop.mapreduce.lib.input.SequenceFileAsTextInputFormat</value>
+                </property>
+                <property>
+                    <name>mapreduce.outputformat.class</name>
+                    <value>org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat</value>
+                </property>
+                <!-- <property> -->
+                <!--     <name>model.file</name> -->
+                <!--     <value>people-model.ttl</value> -->
+                <!-- </property> -->
+                <property>
+                    <name>mapred.input.dir</name>
+                    <value>/user/philpot/hs-total-002_input</value>
+                </property>
+                <property>
+                    <name>mapred.output.dir</name>
+                    <value>/user/philpot/hs-total-003_output</value>
+                </property>
+            </configuration>
+            <!-- <file>./people-model.ttl#people-model.ttl</file> -->
+            <!-- <archive>./karma.zip#karma.zip</archive> -->
+            <streaming>
+                <mapper>python dig.extract.page.backpage</mapper>
+                <reducer>org.apache.hadoop.mapred.lib.IdentityReducer</reducer>
+            </streaming>
+            <archive>./digvenv.zip#dig</archive>
+        </map-reduce>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
