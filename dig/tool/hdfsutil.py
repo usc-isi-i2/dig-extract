@@ -416,6 +416,81 @@ def materializeUrls(urls, destFile, sequence=True):
     print >> sys.stderr, "ELAPSED materializeUrls is %s" % elapsed(delta)
     return count
 
+
+def urlsFromDB(datestamp, sitehost):
+    import mysql.connector
+
+    cnx = mysql.connector.connect(user='sqluser', 
+                                  password='sqlpassword',
+                                  host='karma-dig-1.hdp.azure.karma.isi.edu',
+                                  database='urldb')
+    cursor = cnx.cursor()
+
+    query = ("""SELECT url FROM vw_bydate """
+             """WHERE datestamp=%s AND sitehost=%s""")
+
+    cursor.execute(query, (datestamp, sitehost))
+
+    urls = []
+    for (url) in cursor:
+        urls.append(url[0])
+    cnx.close()
+    return urls
+
+def monthlyUrls(sitekey, month):
+    sitehost = "%s.backpage.com" % sitekey
+    import mysql.connector
+
+    cnx = mysql.connector.connect(user='sqluser', 
+                                  password='sqlpassword',
+                                  host='karma-dig-1.hdp.azure.karma.isi.edu',
+                                  database='urldb')
+    cursor = cnx.cursor()
+
+    query = ("""SELECT url FROM tbl_bydate """
+             """WHERE (datestamp BETWEEN %s AND %s) and sitehost=%s""")
+
+    cursor.execute(query, ("%s01" % month, "%s31" % month, sitehost))
+
+    urls = []
+    for (url) in cursor:
+        urls.append(url[0])
+    cnx.close()
+    return urls
+
+def monthlyMat(sitekey, month):
+    mfield = "%4d-%02d" % (month/100, month%100)
+    stagefile = "/mnt/data/stage/raw/backpage/%s/%s.seq" % (mfield, sitekey)
+    dest = "/dig/data/raw/backpage/%s/%s.seq" % (mfield, sitekey)
+    if os.path.exists(stagefile):
+        print >> sys.stderr, "%s already exists" % stagefile
+    else:
+        print >> sys.stderr, "assemble %s, %s" % (sitekey, mfield)
+        util.ensureDirectoriesExist(stagefile)
+        urls = monthlyUrls(sitekey, month)
+        print >> sys.stderr, "%s, %s: %d urls" % (sitekey, mfield, len(urls))
+        materializeUrls(urls, stagefile)
+    print >> sys.stderr, "%s, %s: seq %s bytes" % (sitekey, mfield, os.path.getsize(stagefile))
+    try:
+        destdir = os.path.dirname(dest)
+        print >> sys.stderr, "mkdir %s" % destdir
+        subprocess.check_call(["hadoop", "fs", "-mkdir", "-p", destdir])
+    except subprocess.CalledProcessError:
+        pass
+    try:
+        print >> sys.stderr, "rm old %s" % dest
+        subprocess.check_call(["hadoop", "fs", "-rm", dest])
+    except subprocess.CalledProcessError:
+        pass
+    subprocess.check_call(["hadoop", "fs", "-put", stagefile, dest])
+    print >> sys.stderr, "%s uploaded" % dest
+    print >> sys.stderr, "%s can be deleted" % stagefile
+
+def monthlyMatAll(sitekeys, months):
+    for month in months:
+        for sitekey in sitekeys:
+            monthlyMat(sitekey, month)
+
 def materializeTextUrls(urls, destFile, sequence=True):
     start = datetime.datetime.now()
     if sequence:
