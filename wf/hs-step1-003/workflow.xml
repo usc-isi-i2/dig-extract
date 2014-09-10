@@ -16,7 +16,7 @@
   limitations under the License.
 -->
 
-<workflow-app name="hs-total-002" xmlns="uri:oozie:workflow:0.4">
+<workflow-app name="hs-total-003" xmlns="uri:oozie:workflow:0.4">
   <global>
             <configuration>
                 <property>
@@ -39,14 +39,6 @@
                     <name>mapred.reducer.new-api</name>
                     <value>true</value>
                 </property>
-                <!-- <property> -->
-                <!--     <name>mapreduce.job.map.class</name> -->
-                <!--     <value>edu.isi.karma.mapreduce.driver.N3Mapper</value> -->
-                <!-- </property> -->
-                <!-- <property> -->
-                <!--     <name>mapreduce.job.reduce.class</name> -->
-                <!--     <value>edu.isi.karma.mapreduce.driver.N3Reducer</value> -->
-                <!-- </property> -->
                 <property>
                     <name>mapreduce.map.output.key.class</name>
                     <value>org.apache.hadoop.io.Text</value>
@@ -71,21 +63,15 @@
                     <name>mapreduce.outputformat.class</name>
                     <value>org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat</value>
                 </property>
-                <!-- <property> -->
-                <!--     <name>model.file</name> -->
-                <!--     <value>people-model.ttl</value> -->
-                <!-- </property> -->
                 <property>
                     <name>mapred.input.dir</name>
-                    <value>/user/philpot/hs-total-002_input</value>
+                    <value>/user/philpot/hs-total-003_input</value>
                 </property>
                 <property>
                     <name>mapred.output.dir</name>
                     <value>/user/philpot/hs-total-003_output</value>
                 </property>
             </configuration>
-            <!-- <file>./people-model.ttl#people-model.ttl</file> -->
-            <!-- <archive>./karma.zip#karma.zip</archive> -->
             <streaming>
                 <mapper>python dig.extract.page.backpage</mapper>
                 <reducer>org.apache.hadoop.mapred.lib.IdentityReducer</reducer>
