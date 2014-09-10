@@ -35,6 +35,11 @@ Stable: objects appear in output in order of first appearance in input"""
     
 AREACODES = None
 
+print sys.path
+import dig.extract.entity.phone
+print dig.extract.entity.phone
+exit(0)
+
 def loadAreaCodes():
   global AREACODES
   from dig.extract.entity.phone.areacode import AREACODES
