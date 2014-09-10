@@ -21,7 +21,7 @@ from collections import defaultdict
 from itertools import izip, chain, izip_longest
 
 # these two come fom $PYTHONPATH containing directory pymod
-from cstokensearcher import CaseSensitiveTokenSearcher as TokenSearcher
+from dig.pymod.cstokensearcher import CaseSensitiveTokenSearcher as TokenSearcher
 from dig.pymod.util import interpretCmdLine
 # for debug only
 from dig.pymod.util import echo, info
