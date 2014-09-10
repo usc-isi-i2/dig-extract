@@ -1,4 +1,4 @@
-#!/usr/bin/env ./dig/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Filename: phone.py
 
@@ -35,7 +35,7 @@ Stable: objects appear in output in order of first appearance in input"""
     
 AREACODES = None
 
-def loadAreacodes():
+def loadAreaCodes():
   global AREACODES
   from dig.extract.entity.phone.areacode import AREACODES
   return AREACODES
