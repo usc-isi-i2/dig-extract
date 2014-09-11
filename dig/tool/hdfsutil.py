@@ -458,11 +458,19 @@ def monthlyUrls(sitekey, month):
     cnx.close()
     return urls
 
+import os
+def touch(fname, times=None):
+    with open(fname, 'a'):
+        os.utime(fname, times)
+
 def monthlyMat(sitekey, month):
     mfield = "%4d-%02d" % (month/100, month%100)
-    stagefile = "/mnt/data/stage/raw/backpage/%s/%s.seq" % (mfield, sitekey)
+    stagefile = "/mnt/resource/data/stage/raw/backpage/%s/%s.seq" % (mfield, sitekey)
     dest = "/dig/data/raw/backpage/%s/%s.seq" % (mfield, sitekey)
-    if os.path.exists(stagefile):
+    if os.path.islink(stagefile):
+        print >> sys.stderr, "%s already uploaded" % stagefile
+        return
+    elif os.path.exists(stagefile):
         print >> sys.stderr, "%s already exists" % stagefile
     else:
         print >> sys.stderr, "assemble %s, %s" % (sitekey, mfield)
@@ -470,7 +478,8 @@ def monthlyMat(sitekey, month):
         urls = monthlyUrls(sitekey, month)
         print >> sys.stderr, "%s, %s: %d urls" % (sitekey, mfield, len(urls))
         materializeUrls(urls, stagefile)
-    print >> sys.stderr, "%s, %s: seq %s bytes" % (sitekey, mfield, os.path.getsize(stagefile))
+    stagefilesize = os.path.getsize(stagefile)
+    print >> sys.stderr, "%s, %s: seq %s bytes" % (sitekey, mfield, stagefilesize)
     try:
         destdir = os.path.dirname(dest)
         print >> sys.stderr, "mkdir %s" % destdir
@@ -482,9 +491,14 @@ def monthlyMat(sitekey, month):
         subprocess.check_call(["hadoop", "fs", "-rm", dest])
     except subprocess.CalledProcessError:
         pass
-    subprocess.check_call(["hadoop", "fs", "-put", stagefile, dest])
-    print >> sys.stderr, "%s uploaded" % dest
-    print >> sys.stderr, "%s can be deleted" % stagefile
+    try:
+        subprocess.check_call(["hadoop", "fs", "-put", stagefile, dest])
+        print >> sys.stderr, "%s uploaded" % dest
+        os.remove(stagefile)
+        print >> sys.stderr, "%s deleted" % stagefile
+        os.symlink(str(stagefilesize), stagefile)
+    except subprocess.CalledProcessError:
+        print >> sys.stderr, "failed to put %s" % stagefile
 
 def monthlyMatAll(sitekeys, months):
     for month in months:
@@ -4444,6 +4458,8 @@ def mmtier(tier):
         for month in [201401, 201402, 201403, 201404, 201405, 201406,
                       201407]:
             mm(month, [sitekey])
+
+MONTHS=[201408,201407,201406,201405,201404,201403,201402,201401]
 
 TIER1_SITEKEYS = ['jerseyshore',
                   'anchorage',
