@@ -8,7 +8,7 @@
 '''
 dig.extract.entity.telephone.phone
 @author: Andrew Philpot
-@version 1.2
+@version 1.3
 '''
 
 import sys, os, re
@@ -19,7 +19,7 @@ from pkg_resources import resource_string
 # for debug only
 from dig.pymod.util import echo
 
-VERSION = "1.2"
+VERSION = "1.3"
 __version__ = VERSION
 
 def uniqueStable(iterator):
@@ -3203,7 +3203,6 @@ def main(argv=None):
     lineregex = re.compile(r"""(^.+)\t(.*)""")
     rawText = ""
     for line in sys.stdin:
-        print >> sys.stderr, line
         m = lineregex.match(line) 
         if m:
             url = m.group(1)
