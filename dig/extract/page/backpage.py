@@ -64,7 +64,7 @@ class BackpagePage(Page):
         try:
             link = self.soup.find('link', {"rel": "canonical"})
             return link.get('href')
-        finally:
+        except:
             return None
 
     def extractSitekey(self):
@@ -75,8 +75,9 @@ class BackpagePage(Page):
                 m = re.search(r"""http://(.*).backpage.com""", content, re.I | re.S)
                 if m:
                     return m.group(1)
-        finally:
+        except:
             return None
+        return None
 
     def deduceMarket(self, sitekey):
         try:
@@ -87,18 +88,19 @@ class BackpagePage(Page):
                         and website.get('source') == 'backpage'
                         and website.get('sitekey') == sitekey):
                         return faa_code
-        finally:
+        except:
             return None
+        return None
 
     def extractStatedAge(self, default=0):
         try:
             p = self.soup.find('p', {'class': "metaInfoDisplay"})
             content = p.contents[0]
-            if content:
-                m = re.search(r"""Poster's age: (\d+)""", content, re.I | re.S)
-                return (m and int(m.group(1)))
-        finally:
+            m = re.search(r"""Poster's age: (\d+)""", content, re.I | re.S)
+            return (m and int(m.group(1)))
+        except:
             return default
+        return default
 
     def extractCreated(self):
         """Unfortunately, this is BP-specific"""
@@ -110,7 +112,7 @@ class BackpagePage(Page):
             parsed = raw and time.strptime(raw, "%A, %B %d, %Y %I:%M %p")
             fmt = parsed and time.strftime("%Y-%m-%d %H:%M:%S", parsed)
             return datetime.datetime.fromtimestamp(mktime(time.strptime(fmt,"%Y-%m-%d %H:%M:%S")))
-        finally:
+        except:
             return datetime.datetime.fromtimestamp(mktime(gmtime(0)))
 
     def extractTitleText(self):
@@ -118,8 +120,9 @@ class BackpagePage(Page):
             h1 = self.soup.find('h1')
             content = h1.contents[0]
             return content.strip()
-        finally:
+        except:
             return None
+        return None
        
     def extractLocationText(self):
         try:
@@ -131,22 +134,24 @@ class BackpagePage(Page):
                         return m.group(1).strip()
                 except:
                     pass
-        finally:
+        except:
             return None
+        return None
 
     def extractBodyHtml(self):
         try:
             div = self.soup.find('div', {"class": "postingBody"})
             if div:
                 return div
-        finally:
+        except:
             return None
+        return None
 
     def extractBodyText(self):
         try:
             html = self.cache.get('bodyHtml') or self.extractBodyHtml()
             return html.get_text()
-        finally:
+        except:
             return None
 
     def extractImageRefs(self):
@@ -163,8 +168,9 @@ class BackpagePage(Page):
                         if m:
                             # not contextualized to either studio or the real world
                             imageRefs.append(m.group(1))
-        finally:
+        except:
             return imageRefs
+        return imageRefs
 
     def extractCrosslinks(self):
         # untested
@@ -179,8 +185,9 @@ class BackpagePage(Page):
                     # if ("FemaleEscorts" in sibling or (sibling[0:2] == ".." and sibling != "../index.html")):
                     if (sibling and sibling[0:2] == ".." and sibling != "../index.html"):
                         crosslinks.append((self.url, sibling))
-        finally:
+        except:
             return crosslinks
+        return crosslinks
 
     def extract(self):
         self.cache = {}
