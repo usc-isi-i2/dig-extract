@@ -1,4 +1,4 @@
-#!/usr/bin/env ./dig/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Filename: backpage.py
 

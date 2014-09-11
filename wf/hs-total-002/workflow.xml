@@ -1,0 +1,164 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<workflow-app name="hs-total-002" xmlns="uri:oozie:workflow:0.4">
+  <global>
+            <configuration>
+                <property>
+                    <name>jobTracker</name>
+                    <value>karma-dig-3.hdp.azure.karma.isi.edu:8050</value>
+                </property>
+            </configuration>
+  </global>
+    <start to="de_page_backpage"/>
+    <action name="de_page_backpage">
+        <map-reduce>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.mapper.new-api</name>
+                    <value>true</value>
+                </property>
+                <property>
+                    <name>mapred.reducer.new-api</name>
+                    <value>true</value>
+                </property>
+                <!-- <property> -->
+                <!--     <name>mapreduce.job.map.class</name> -->
+                <!--     <value>edu.isi.karma.mapreduce.driver.N3Mapper</value> -->
+                <!-- </property> -->
+                <!-- <property> -->
+                <!--     <name>mapreduce.job.reduce.class</name> -->
+                <!--     <value>edu.isi.karma.mapreduce.driver.N3Reducer</value> -->
+                <!-- </property> -->
+                <property>
+                    <name>mapreduce.map.output.key.class</name>
+                    <value>org.apache.hadoop.io.Text</value>
+                </property>
+                <property>
+                    <name>mapreduce.map.output.value.class</name>
+                    <value>org.apache.hadoop.io.Text</value>
+                </property>
+                <property>
+                    <name>mapred.input.key.class</name>
+                    <value>org.apache.hadoop.io.Text</value>
+                </property>
+                <property>
+                    <name>mapred.input.value.class</name>
+                    <value>org.apache.hadoop.io.Text</value>
+                </property>
+                <property>
+                    <name>mapreduce.inputformat.class</name>
+                    <value>org.apache.hadoop.mapreduce.lib.input.SequenceFileAsTextInputFormat</value>
+                </property>
+                <property>
+                    <name>mapreduce.outputformat.class</name>
+                    <value>org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat</value>
+                </property>
+                <!-- <property> -->
+                <!--     <name>model.file</name> -->
+                <!--     <value>people-model.ttl</value> -->
+                <!-- </property> -->
+                <property>
+                    <name>mapred.input.dir</name>
+                    <value>/user/philpot/hs-total-002_input</value>
+                </property>
+                <property>
+                    <name>mapred.output.dir</name>
+                    <value>/user/philpot/hs-total-003_output</value>
+                </property>
+            </configuration>
+            <!-- <file>./people-model.ttl#people-model.ttl</file> -->
+            <!-- <archive>./karma.zip#karma.zip</archive> -->
+            <streaming>
+                <mapper>python dig.extract.page.backpage</mapper>
+                <reducer>org.apache.hadoop.mapred.lib.IdentityReducer</reducer>
+            </streaming>
+            <archive>./digvenv.zip#dig</archive>
+        </map-reduce>
+        <ok to="fork_backpage_data"/>
+        <error to="kill"/>
+    </action>
+    <fork name="fork_backpage_data">
+        <path start="de_entity_digtoken" />
+        <path start="de_entity_phone" />
+    </fork>
+    <action name="de_entity_digtoken">
+        <map-reduce>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <streaming>
+                <mapper>python dig.extract.entity.digtoken</mapper>
+                <reducer>org.apache.hadoop.mapred.lib.IdentityReducer</reducer>
+            </streaming>
+            <archive>/opt/dig/venv/digvenv.zip</archive>
+        </map-reduce>
+        <ok to="fork_digtoken_data"/>
+        <error to="kill"/>
+    </action>
+    <fork name="fork_digtoken_data">
+        <path start="de_entity_workingname_workingname" />
+        <path start="de_entity_classifier_patscan" />
+    </fork>
+    <action name="de_entity_workingname_workingname">
+        <map-reduce>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <streaming>
+                <mapper>python dig.extract.entity.workingname.workingname</mapper>
+                <reducer>org.apache.hadoop.mapred.lib.IdentityReducer</reducer>
+            </streaming>
+            <archive>/opt/dig/venv/digvenv.zip</archive>
+        </map-reduce>
+        <ok to="join-303"/>
+        <error to="kill"/>
+    </action>
+    <action name="de_entity_classifier_patscan">
+        <map-reduce>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <streaming>
+                <mapper>python dig.extract.entity.classlfier.patscan -c &quot;ageSelect&quot; -c &quot;agency&quot; -c &quot;briefDuration&quot; -c &quot;ethnicityNationality&quot; -c &quot;incall&quot; -c &quot;incalloutcall&quot; -c &quot;multiProvider&quot; -c &quot;notagency&quot; -c &quot;notincall&quot; -c &quot;notoutcall&quot; -c &quot;outcall&quot; -c &quot;providerYouth&quot; -c &quot;raceEthnicSelect&quot; -c &quot;spa&quot;</mapper>
+                <reducer>org.apache.hadoop.mapred.lib.IdentityReducer</reducer>
+            </streaming>
+            <archive>/opt/dig/venv/digvenv.zip</archive>
+        </map-reduce>
+        <ok to="join-303"/>
+        <error to="kill"/>
+    </action>
+    <join name="join-303" to="join-300"/>
+    <action name="de_entity_phone">
+        <map-reduce>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <streaming>
+                <mapper>python dig.extract.entity.phone</mapper>
+                <reducer>org.apache.hadoop.mapred.lib.IdentityReducer</reducer>
+            </streaming>
+            <archive>/opt/dig/venv/digvenv.zip</archive>
+        </map-reduce>
+        <ok to="join-300"/>
+        <error to="kill"/>
+    </action>
+    <join name="join-300" to="end"/>
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
