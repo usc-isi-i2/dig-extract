@@ -61,13 +61,16 @@ class BackpagePage(Page):
         self.soup = bs(self.content)
 
     def extractSid(self):
+        default = None
         try:
             link = self.soup.find('link', {"rel": "canonical"})
             return link.get('href')
         except:
-            return None
+            pass
+        return default
 
     def extractSitekey(self):
+        default = None
         try:
             div = self.soup.find('div', {"id": "logo"})
             for a in div.find_all('a'):
@@ -76,10 +79,11 @@ class BackpagePage(Page):
                 if m:
                     return m.group(1)
         except:
-            return None
-        return None
+            pass
+        return default
 
     def deduceMarket(self, sitekey):
+        default = None
         try:
             for (faa_code, market) in self.markets.iteritems():
                 websites = market.get('websites') or []
@@ -89,8 +93,8 @@ class BackpagePage(Page):
                         and website.get('sitekey') == sitekey):
                         return faa_code
         except:
-            return None
-        return None
+            pass
+        return default
 
     def extractStatedAge(self, default=0):
         try:
@@ -104,6 +108,7 @@ class BackpagePage(Page):
 
     def extractCreated(self):
         """Unfortunately, this is BP-specific"""
+        default = datetime.datetime.fromtimestamp(mktime(gmtime(0)))
         try:
             div = self.soup.find('div', {"class": "adInfo"})
             content = div.contents[0]
@@ -113,18 +118,21 @@ class BackpagePage(Page):
             fmt = parsed and time.strftime("%Y-%m-%d %H:%M:%S", parsed)
             return datetime.datetime.fromtimestamp(mktime(time.strptime(fmt,"%Y-%m-%d %H:%M:%S")))
         except:
-            return datetime.datetime.fromtimestamp(mktime(gmtime(0)))
+            pass
+        return default
 
     def extractTitleText(self):
+        default = None
         try:
             h1 = self.soup.find('h1')
             content = h1.contents[0]
             return content.strip()
         except:
-            return None
-        return None
+            pass
+        return default
        
     def extractLocationText(self):
+        default = None
         try:
             for div in self.soup.find_all('div', {"style": "padding-left:2em;"}):
                 content = div.contents[0]
@@ -135,24 +143,27 @@ class BackpagePage(Page):
                 except:
                     pass
         except:
-            return None
-        return None
+            pass
+        return default
 
     def extractBodyHtml(self):
+        default = None
         try:
             div = self.soup.find('div', {"class": "postingBody"})
             if div:
                 return div
         except:
-            return None
-        return None
+            pass
+        return default
 
     def extractBodyText(self):
+        default = None
         try:
             html = self.cache.get('bodyHtml') or self.extractBodyHtml()
             return html.get_text()
         except:
-            return None
+            pass
+        return None
 
     def extractImageRefs(self):
         imageRefs = list()
@@ -169,7 +180,7 @@ class BackpagePage(Page):
                             # not contextualized to either studio or the real world
                             imageRefs.append(m.group(1))
         except:
-            return imageRefs
+            pass
         return imageRefs
 
     def extractCrosslinks(self):
@@ -186,7 +197,7 @@ class BackpagePage(Page):
                     if (sibling and sibling[0:2] == ".." and sibling != "../index.html"):
                         crosslinks.append((self.url, sibling))
         except:
-            return crosslinks
+            pass
         return crosslinks
 
     def extract(self):
