@@ -1,6 +1,6 @@
 #!/bin/sh
 
-oldcwd = `pwd`
+oldcwd=`pwd`
 cd /opt/dig/project/dig-extract
 python setup.py install
 cd /opt/dig/venv/dig
