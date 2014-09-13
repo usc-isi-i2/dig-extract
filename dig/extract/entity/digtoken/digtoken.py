@@ -6,7 +6,7 @@
 #!/usr/bin/env python
 
 '''
-dig.extract.entity.digtoken
+dig.extract.entity.digtoken.digtoken
 @author: Andrew Philpot
 @version 0.0.1
 '''
@@ -139,34 +139,42 @@ def main(argv=None):
     
     lineregex = re.compile(r"""(^.+)\t(.*)""")
     rawText = ""
+    processed = 0
+    url = None
     for line in sys.stdin:
-        # print line
-        m = lineregex.match(line) 
-        if m:
-            url = m.group(1)
-            rawText = m.group(2)
-            post = json.loads(rawText)
-            if isinstance(post, dict):
-                titleText = post.get('titleText')
-                if titleText and titleText.get('content'):
-                    tzr = Tokenizer(titleText['content'])
-                    titleText['tokens'] = [t for t in tzr.genTokens()]
-                else:
-                    print >> sys.stderr, "No location text for %r" % url
-                locationText = post.get('locationText')
-                if locationText and locationText.get('content'):
-                    tzr = Tokenizer(locationText['content'])
-                    locationText['tokens'] = [t for t in tzr.genTokens()]
-                else:
-                    print >> sys.stderr, "No title text for %r" % url
-                bodyText = post.get('bodyText')
-                if bodyText and bodyText.get('content'):
-                    tzr = Tokenizer(bodyText['content'])
-                    bodyText['tokens'] = [t for t in tzr.genTokens()]
-                else:
-                    print >> sys.stderr, "No body text for %r" % url
-            js = json.dumps(post, sort_keys=True, indent=None)
-            print >> sys.stdout, "%s\t%s" % (url, js)
+        try:
+            # print line
+            m = lineregex.match(line) 
+            if m:
+                url = m.group(1)
+                rawText = m.group(2)
+                post = json.loads(rawText)
+                if isinstance(post, dict):
+                    titleText = post.get('titleText')
+                    if titleText and titleText.get('content'):
+                        tzr = Tokenizer(titleText['content'])
+                        titleText['tokens'] = [t for t in tzr.genTokens()]
+                    else:
+                        print >> sys.stderr, "No location text for %r" % url
+                    locationText = post.get('locationText')
+                    if locationText and locationText.get('content'):
+                        tzr = Tokenizer(locationText['content'])
+                        locationText['tokens'] = [t for t in tzr.genTokens()]
+                    else:
+                        print >> sys.stderr, "No title text for %r" % url
+                    bodyText = post.get('bodyText')
+                    if bodyText and bodyText.get('content'):
+                        tzr = Tokenizer(bodyText['content'])
+                        bodyText['tokens'] = [t for t in tzr.genTokens()]
+                    else:
+                        print >> sys.stderr, "No body text for %r" % url
+                processed += 1
+                js = json.dumps(post, sort_keys=True, indent=None)
+                print >> sys.stdout, "%s\t%s" % (url, js)
+        except Exception as e:
+            print >> sys.stderr, "dig.extract.entity.digtoken.digtoken Exception [%s].  Last url was [%s]" % (str(e), url)
+    print >> sys.stderr, "dig.extract.entity.digtoken.digtoken processed %d records" % processed
+
 
 # call main() if this is run as standalone
 if __name__ == "__main__":
