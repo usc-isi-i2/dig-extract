@@ -8,7 +8,7 @@
 '''
 dig.extract.entity.telephone.phone
 @author: Andrew Philpot
-@version 1.3
+@version 1.4
 '''
 
 import sys, os, re
@@ -19,7 +19,7 @@ from pkg_resources import resource_string
 # for debug only
 from dig.pymod.util import echo
 
-VERSION = "1.3"
+VERSION = "1.4"
 __version__ = VERSION
 
 def uniqueStable(iterator):
@@ -3202,43 +3202,51 @@ def main(argv=None):
     
     lineregex = re.compile(r"""(^.+)\t(.*)""")
     rawText = ""
+    url = None
+    processed = 0
     for line in sys.stdin:
-        m = lineregex.match(line) 
-        if m:
-            url = m.group(1)
-            rawText = m.group(2)
-            post = json.loads(rawText)
-            if isinstance(post, dict):
-                allPhoneNumbers = []
+        try:
+            # print line
+            m = lineregex.match(line) 
+            if m:
+                url = m.group(1)
+                rawText = m.group(2)
+                post = json.loads(rawText)
+                if isinstance(post, dict):
+                    allPhoneNumbers = []
 
-                titleText = post.get('titleText')
-                if titleText and titleText.get('content'):
-                    extr = PhoneExtractor(titleText['content'])
-                    phoneNumbers = extr.extractPhoneNumbers()
-                    # store locally with the specific text
-                    titleText['phoneNumbers'] = phoneNumbers
-                    allPhoneNumbers.extend(phoneNumbers)
+                    titleText = post.get('titleText')
+                    if titleText and titleText.get('content'):
+                        extr = PhoneExtractor(titleText['content'])
+                        phoneNumbers = extr.extractPhoneNumbers()
+                        # store locally with the specific text
+                        titleText['phoneNumbers'] = phoneNumbers
+                        allPhoneNumbers.extend(phoneNumbers)
 
-                locationText = post.get('locationText')
-                if locationText and locationText.get('content'):
-                    extr = PhoneExtractor(locationText['content'])
-                    phoneNumbers = extr.extractPhoneNumbers()
-                    # store locally with the specific text
-                    locationText['phoneNumbers'] = phoneNumbers
-                    allPhoneNumbers.extend(phoneNumbers)
+                    locationText = post.get('locationText')
+                    if locationText and locationText.get('content'):
+                        extr = PhoneExtractor(locationText['content'])
+                        phoneNumbers = extr.extractPhoneNumbers()
+                        # store locally with the specific text 
+                        locationText['phoneNumbers'] = phoneNumbers
+                        allPhoneNumbers.extend(phoneNumbers)
 
-                bodyText = post.get('bodyText')
-                if bodyText and bodyText.get('content'):
-                    extr = PhoneExtractor(bodyText['content'])
-                    phoneNumbers = extr.extractPhoneNumbers()
-                    # store locally with the specific text
-                    bodyText['phoneNumbers'] = phoneNumbers
-                    allPhoneNumbers.extend(phoneNumbers)
-            
-                post['phoneNumbers'] = uniqueStable(allPhoneNumbers)
+                    bodyText = post.get('bodyText')
+                    if bodyText and bodyText.get('content'):
+                        extr = PhoneExtractor(bodyText['content'])
+                        phoneNumbers = extr.extractPhoneNumbers()
+                        # store locally with the specific text
+                        bodyText['phoneNumbers'] = phoneNumbers
+                        allPhoneNumbers.extend(phoneNumbers)
 
-            js = json.dumps(post, sort_keys=True, indent=None)
-            print >> sys.stdout, "%s\t%s" % (url, js)
+                    post['phoneNumbers'] = uniqueStable(allPhoneNumbers)
+
+                js = json.dumps(post, sort_keys=True, indent=None)
+                processed += 1
+                print >> sys.stdout, "%s\t%s" % (url, js)
+        except Exception as e:
+            print >> sys.stderr, "dig.extract.entity.telephone.phone Exception [%s].  Last url was [%s]" % (str(e), url)
+    print >> sys.stderr, "dig.extract.entity.telephone.phone processed %d records" % processed
 
 # call main() if this is run as standalone
 if __name__ == "__main__":
