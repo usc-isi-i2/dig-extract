@@ -379,6 +379,7 @@ def genUrls(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, sitekeys=SITEKEYS):
     for blob in genBlobs(datestamps=datestamps, crawlAgents=crawlAgents, sitekeys=sitekeys):
         yield blob.url
 
+# add printEvery
 def materializeUrls(urls, destFile, sequence=True):
     count = 0
     start = datetime.datetime.now()
