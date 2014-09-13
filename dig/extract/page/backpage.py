@@ -8,7 +8,7 @@
 '''
 dig.extract.page.backpage
 @author: Andrew Philpot
-@version 4.6
+@version 4.7
 '''
 
 import sys, os, re, time, datetime
@@ -24,7 +24,7 @@ from pkg_resources import resource_string, resource_exists
 # from dig.pymod.util import echo, abbrevString, emittable, utf8print
 from dig.pymod.util import echo, abbrevString, emittable
 
-VERSION = "4.6"
+VERSION = "4.7"
 __version__ = VERSION
 REVISION = "$Revision: 25782 $".replace("$","")
 
@@ -245,28 +245,32 @@ def main(argv=None):
     urlregex = re.compile(r"""https://karmadigstorage.blob.core.windows.net/arch/([a-zA-Z0-9]+)/(\d{8})/.*\.backpage\.com/(.*)""")
     rawText = ""
     processed = 0
+    url = None
     for line in sys.stdin:
-        # print line
-        m = lineregex.match(line) 
-        if m:
-            url = m.group(1)
-            rawText = m.group(2)
-            urlMatch = urlregex.match(url)
-            if urlMatch:
-                crawlAgent = urlMatch.group(1)
-                datestamp = urlMatch.group(2)
-                tail = urlMatch.group(3)
-                if "index.html" in tail:
-                    pass
-                else:
-                    pageStr = json.loads(rawText)
-                    page = pageCls(url=url,
-                                   content=pageStr,
-                                   crawlAgent=crawlAgent,
-                                   datestamp=int(datestamp))
-                    page.process()
-                    processed += 1
-                    # print "%s\t%s" % (url, len(pageStr))
+        try:
+            # print line
+            m = lineregex.match(line) 
+            if m:
+                url = m.group(1)
+                rawText = m.group(2)
+                urlMatch = urlregex.match(url)
+                if urlMatch:
+                    crawlAgent = urlMatch.group(1)
+                    datestamp = urlMatch.group(2)
+                    tail = urlMatch.group(3)
+                    if "index.html" in tail:
+                        pass
+                    else:
+                        pageStr = json.loads(rawText)
+                        page = pageCls(url=url,
+                                       content=pageStr,
+                                       crawlAgent=crawlAgent,
+                                       datestamp=int(datestamp))
+                        page.process()
+                        processed += 1
+                        # print "%s\t%s" % (url, len(pageStr))
+        except Exception as e:
+            print >> sys.stderr, "dig.extract.page.backpage Exception [%s].  Last url was [%s]" % (str(e), url)
     print >> sys.stderr, "dig.extract.page.backpage processed %d records" % processed
 
 # call main() if this is run as standalone
