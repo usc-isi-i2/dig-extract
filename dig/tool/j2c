@@ -1,0 +1,18 @@
+#!/usr/bin/env python -u
+import sys, os
+import cbor
+import simplejson as json
+import argparse
+
+parser = argparse.ArgumentParser(sys.argv[0], description='j2c')
+parser.add_argument('-v', '--verbose', help='print error messages to stderr',
+                    required=False, 
+                    action="store_true")
+args = parser.parse_args(sys.argv[1:])
+verbose = args.verbose
+
+try:
+    print cbor.dumps(json.loads(sys.stdin.read()))
+except Exception, e:
+    if verbose:
+        print >> sys.stderr, "error [%r]" % e
