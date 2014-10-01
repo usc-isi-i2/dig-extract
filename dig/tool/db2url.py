@@ -15,6 +15,7 @@ import simplejson as json
 import re
 import time
 import socket
+import mysql.connector
 
 # corresponds to r25784 from memex/toddler svn repository
 
@@ -356,6 +357,30 @@ def listAll(prefix=None, outstream=sys.stdout):
             break
     return total
 
+def listAll(prefix=None, outstream=sys.stdout):
+    total = 0
+    # bs = BlobService(account_name='<accountname>', account_key='<accountkey>')
+    next_marker = None
+    while True:
+        try:
+            blobs = bs.list_blobs(mycontainer, maxresults=5000, marker=next_marker, prefix=prefix)
+        except WindowsAzureError as e:
+            print >> sys.stderr, "Failed to fetch [%s], exiting" % prefix
+            break
+        next_marker = blobs.next_marker
+        # print(next_marker)
+        # print blobs[0].name
+        total += len(blobs)
+        for blob in blobs:
+            try:
+                print >> outstream, blob.url
+            except WindowsAzureError as e:
+                print >> sys.stderr, "Failed on %s, skipping" % blob
+        if next_marker is None:
+            break
+    return total
+
+
 def listByDatestamp(datestamp, crawlAgents=CRAWLAGENTS):
     total = 0
     with open('/tmp/%s.byDatestamp' % datestamp, 'w') as f:
@@ -435,25 +460,86 @@ def materializeUrls(urls, destFile, sequence=True):
     return count
 
 
-def urlsFromDB(datestamp, sitehost):
-    import mysql.connector
-
-    cnx = mysql.connector.connect(user='sqluser', 
-                                  password='sqlpassword',
-                                  host='karma-dig-1.hdp.azure.karma.isi.edu',
-                                  database='urldb')
+def db2url(tbl='backpage_incoming',
+           limit=1,
+           user='sqluser', 
+           password='sqlpassword',
+           # host='karma-dig-db.cloudapp.net',
+           host='localhost',
+           database='memex_small',
+           maxAttempts = 3):
+    cnx = mysql.connector.connect(user=user,
+                                  password=password,
+                                  host=host,
+                                  database=database)
     cursor = cnx.cursor()
 
-    query = ("""SELECT url FROM vw_bydate """
-             """WHERE datestamp=%s AND sitehost=%s""")
+    query = (("""SELECT url, body, timestamp FROM %s """ % tbl) + 
+             (""" LIMIT %s"""))
 
-    cursor.execute(query, (datestamp, sitehost))
+    query = query % (limit)
+
+    cursor.execute(query)
 
     urls = []
-    for (url) in cursor:
-        urls.append(url[0])
+    for (url, body, timestamp) in cursor:
+        print url
+        print timestamp
+        datestamp = timestamp.strftime('%Y%m%d')
+        # follow https://karmadigstorage.blob.core.windows.net/arch/churl/20140101/olympia.backpage.com/FemaleEscorts/100-asian-hi-im-honey-n-im-super-sweet-25/13538952
+        crawlAgent = "istr_%s" % database
+        destination = os.path.join(crawlAgent, str(datestamp), url[7:])
+        # print destination
+        # exit(0)
+        try:
+            success = False
+            remainingAttempts = maxAttempts
+            while not success and remainingAttempts>0:
+                try:
+                    size = len(body)
+                    status = bs.put_block_blob_from_text(mycontainer, destination, body,
+                                                         x_ms_blob_content_type='text/html')
+                    print >> sys.stderr, "reload %s as %s / %s: size=%d, status=%s" % (url, mycontainer, destination, size, status)
+                    success = True
+                    break
+                except socket.error as se:
+                    remainingAttempts -= 1
+                    print >> sys.stderr, "Uploading %s failed, sleep 5 sec, %d more tries" % (pathname, remainingAttempts)
+                    time.sleep(5)
+                except WindowsAzureError as e:
+                    print >> sys.stderr, "Azure failure [%r], skipping"
+        except Exception as e:
+            print >> sys.stderr, "Total failure per %s" % e
+
     cnx.close()
     return urls
+
+def test(tbl='backpage_incoming',
+         limit=10,
+         user='sqluser', 
+         password='sqlpassword',
+         # host='karma-dig-db.cloudapp.net',
+         host='localhost',
+         database='memex_small',
+         maxAttempts = 3):
+
+    text = "abc 123"
+    cnx = mysql.connector.connect(user=user,
+                                  password=password,
+                                  host=host,
+                                  database=database)
+    cursor = cnx.cursor()
+    query = ("""SELECT body FROM %s LIMIT %s""" % (tbl, limit))
+    cursor.execute(query)
+    for (body,) in cursor:
+        text = body
+
+    destination = "test"
+    status = bs.put_block_blob_from_text(mycontainer, destination, text,
+                                         x_ms_blob_content_type='text/html')
+    print >> sys.stderr, "reload %s as %s / %s" % (text, mycontainer, destination)
+    print >> sys.stderr, "status was %r" % status
+
 
 def monthlyUrls(sitekey, month):
     sitehost = "%s.backpage.com" % sitekey
@@ -6309,210 +6395,3 @@ AUG2 = [["bronx",	2,	8175133],
         ["springfieldmo",	19,	-1],
         ["loz",	19,	-1]]
 
-AUG3 = [["newyork",	2,	8175133],
-        ["statenisland",	2,	8175133],
-        ["galveston",	1,	2099451],
-        ["prescott",	2,	1445632],
-        ["denton",	1,	1197816],
-        ["jacksonville",	2,	821784],
-        ["austin",	19,	786386],
-        ["detroit",	1,	713777],
-        ["boston",	1,	617594],
-        ["nova",	1,	601723],
-        ["fredericksburg",	1,	601723],
-        ["oklahomacity",	2,	579999],
-        ["albuquerque",	19,	529219],
-        ["kc",	1,	459787],
-        ["ftlauderdale",	1,	399457],
-        ["minneapolis",	19,	382578],
-        ["honolulu",	2,	337256],
-        ["orangecounty",	1,	324528],
-        ["pittsburgh",	14,	311647],
-        ["stockton",	4,	291707],
-        ["tricitieswa",	5,	253340],
-        ["tuscaloosa",	13,	230131],
-        ["richmond",	14,	204451],
-        ["modesto",	4,	201165],
-        ["augusta",	13,	195844],
-        ["littlerock",	8,	193524],
-        ["knoxville",	13,	178874],
-        ["jackson",	8,	173514],
-        ["palmdale",	4,	152750],
-        ["hiltonhead",	13,	136286],
-        ["springfield",	19,	124775],
-        ["tippecanoe",	3,	120623],
-        ["annarbor",	2,	113934],
-        ["montana",	19,	104170],
-        ["sanmateo",	4,	101123],
-        ["santabarbara",	4,	91000],
-        ["chico",	4,	86000],
-        ["merced",	4,	79000],
-        ["lakecharles",	8,	72475],
-        ["biloxi",	8,	69220],
-        ["terrehaute",	3,	61000],
-        ["pensacola",	8,	52197],
-        ["alexandria",	8,	48164],
-        ["siskiyou",	4,	45000],
-        ["shoals",	19,	39354],
-        ["mtvernon",	5,	32139],
-        ["pullman",	5,	27619],
-        ["natchez",	8,	15562],
-        ["catskills",	14,	-1],
-        ["brownsville",	19,	-1],
-        ["wausau",	19,	-1],
-        ["elpaso",	19,	-1],
-        ["glensfalls",	19,	-1],
-        ["westchester",	14,	-1],
-        ["eastky",	19,	-1],
-        ["lynchburg",	19,	-1],
-        ["spacecoast",	19,	-1],
-        ["virginiabeach",	19,	-1],
-        ["provo",	19,	-1],
-        ["santafe",	19,	-1],
-        ["stjoseph",	19,	-1],
-        ["northernmichigan",	19,	-1],
-        ["abilene",	19,	-1],
-        ["kalamazoo",	19,	-1],
-        ["akroncanton",	19,	-1],
-        ["daytona",	19,	-1],
-        ["eugene",	19,	-1],
-        ["grandisland",	19,	-1],
-        ["williamsport",	14,	-1],
-        ["lexington",	19,	-1],
-        ["odessa",	19,	-1],
-        ["centralmich",	19,	-1],
-        ["westky",	19,	-1],
-        ["easternshore",	14,	-1],
-        ["quincy",	19,	-1],
-        ["amarillo",	19,	-1],
-        ["swmi",	19,	-1],
-        ["harrisonburg",	19,	-1],
-        ["danville",	19,	-1],
-        ["florence",	19,	-1],
-        ["grandrapids",	19,	-1],
-        ["wilmington",	19,	-1],
-        ["lascruces",	19,	-1],
-        ["york",	14,	-1],
-        ["madison",	19,	-1],
-        ["portsmouth",	19,	-1],
-        ["racine",	19,	-1],
-        ["sheboygan",	19,	-1],
-        ["cookeville",	19,	-1],
-        ["swva",	19,	-1],
-        ["appleton",	19,	-1],
-        ["buffalo",	19,	-1],
-        ["corvallis",	19,	-1],
-        ["twintiers",	19,	-1],
-        ["grandforks",	19,	-1],
-        ["nwct",	14,	-1],
-        ["lawton",	19,	-1],
-        ["masoncity",	19,	-1],
-        ["outerbanks",	19,	-1],
-        ["hampton",	19,	-1],
-        ["raleigh",	19,	-1],
-        ["springfieldil",	19,	-1],
-        ["tyler",	19,	-1]]
-
-AUG4 = [["brooklyn",	2,	8175133],
-        ["losangeles",	1,	3792621],
-        ["southjersey",	2,	1526006],
-        ["sanantonio",	1,	1327407],
-        ["fortworth",	1,	1197816],
-        ["staugustine",	2,	821784],
-        ["sanmarcos",	19,	786386],
-        ["memphis",	2,	646889],
-        ["seattle",	1,	608660],
-        ["southernmaryland",	1,	601723],
-        ["denver",	2,	600158],
-        ["louisville",	19,	566503],
-        ["fresno",	4,	494665],
-        ["atlanta",	1,	420003],
-        ["miami",	1,	399457],
-        ["wichita",	19,	382368],
-        ["lakeland",	1,	335709],
-        ["bakersfield",	4,	324463],
-        ["inlandempire",	1,	303871],
-        ["toledo",	1,	287208],
-        ["batonrouge",	8,	230139],
-        ["reno",	1,	225221],
-        ["richmondin",	3,	204214],
-        ["shreveport",	1,	199311],
-        ["mobile",	8,	194914],
-        ["saltlakecity",	19,	183102],
-        ["providence",	14,	178042],
-        ["northbay",	4,	167815],
-        ["fortcollins",	19,	138733],
-        ["newhaven",	2,	129779],
-        ["hartford",	19,	124775],
-        ["beaumont",	8,	118548],
-        ["newhampshire",	19,	109565],
-        ["everett",	1,	103019],
-        ["boulder",	19,	100160],
-        ["redding",	4,	90000],
-        ["santamaria",	4,	86000],
-        ["albanyga",	13,	77683],
-        ["chambana",	99,	72000],
-        ["jonesboro",	8,	68547],
-        ["santacruz",	4,	60000],
-        ["charlestonwv",	19,	51400],
-        ["hattiesburg",	8,	46626],
-        ["palmsprings",	4,	45000],
-        ["burlington",	19,	38647],
-        ["wenatchee",	5,	30229],
-        ["humboldt",	4,	27000],
-        ["brunswick",	13,	15525],
-        ["watertown",	14,	-1],
-        ["chautauqua",	19,	-1],
-        ["dubuque",	19,	-1],
-        ["meadville",	14,	-1],
-        ["greenbay",	19,	-1],
-        ["killeen",	19,	-1],
-        ["logan",	19,	-1],
-        ["harrisburg",	14,	-1],
-        ["potsdam",	19,	-1],
-        ["eastoregon",	19,	-1],
-        ["roseburg",	19,	-1],
-        ["stgeorge",	19,	-1],
-        ["siouxcity",	19,	-1],
-        ["victoriatx",	19,	-1],
-        ["waco",	19,	-1],
-        ["scottsbluff",	19,	-1],
-        ["charlottesville",	19,	-1],
-        ["decatur",	19,	-1],
-        ["flagstaff",	19,	-1],
-        ["winstonsalem",	19,	-1],
-        ["janesville",	19,	-1],
-        ["kauai",	19,	-1],
-        ["lancaster",	14,	-1],
-        ["ocala",	19,	-1],
-        ["porthuron",	19,	-1],
-        ["syracuse",	19,	-1],
-        ["lasalle",	19,	-1],
-        ["altoona",	14,	-1],
-        ["bemidji",	19,	-1],
-        ["iowacity",	19,	-1],
-        ["eauclaire",	19,	-1],
-        ["fortdodge",	19,	-1],
-        ["cumberlandvalley",	14,	-1],
-        ["kirksville",	19,	-1],
-        ["topeka",	19,	-1],
-        ["huntingtonoh",	19,	-1],
-        ["myrtlebeach",	19,	-1],
-        ["owensboro",	19,	-1],
-        ["bend",	19,	-1],
-        ["pennstate",	14,	-1],
-        ["hudsonvalley",	14,	-1],
-        ["youngstown",	19,	-1],
-        ["scranton",	14,	-1],
-        ["semo",	19,	-1],
-        ["dayton",	19,	-1],
-        ["erie",	14,	-1],
-        ["holland",	19,	-1],
-        ["mohave",	19,	-1],
-        ["klamath",	19,	-1],
-        ["mansfield",	19,	-1],
-        ["easternnc",	19,	-1],
-        ["suffolk",	19,	-1],
-        ["rochester",	19,	-1],
-        ["stcloud",	19,	-1],
-        ["huntsvilletx",	19,	-1]]
