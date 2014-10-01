@@ -101,7 +101,7 @@ KD2 = [ds for ds in genDatestamps(start=20130701, end=20130731)]
 KD3 = [ds for ds in genDatestamps(start=20130801, end=20130831)]
 KD4 = [ds for ds in genDatestamps(start=20130901, end=20130930)]
 KD5 = [ds for ds in genDatestamps(start=20131001, end=20131031)]
-KD6 = [ds for ds in genDatestamps(start=20131101, end=20131131)]
+KD6 = [ds for ds in genDatestamps(start=20131101, end=20131130)]
 KD7 = [ds for ds in genDatestamps(start=20131201, end=20131231)]
 
 
