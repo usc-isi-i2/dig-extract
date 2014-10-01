@@ -97,6 +97,7 @@ DATESTAMPS = [ds for ds in genDatestamps(start=20140101, end=20140103)]
 DATESTAMPS = [ds for ds in genDatestamps(start=20130101, end=20141231)]
 DATESTAMPS = [ds for ds in genDatestamps(start=20130513, end=20131231)]
 KD1=DATESTAMPS[0:49]
+KD1 = [ds for ds in genDatestamps(start=20130601, end=20130630)]
 KD2 = [ds for ds in genDatestamps(start=20130701, end=20130731)]
 KD3 = [ds for ds in genDatestamps(start=20130801, end=20130831)]
 KD4 = [ds for ds in genDatestamps(start=20130901, end=20130930)]
@@ -106,154 +107,161 @@ KD7 = [ds for ds in genDatestamps(start=20131201, end=20131231)]
 
 
 SITEKEYS = True
+OMITIMAGES = True
 
-def downloadBackpageAds(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
+def downloadBackpageAds(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, omitImages=OMITIMAGES):
+    workdir = "/home/philpot/arch"
+    workdir = "/mnt/data3/work/arch"
     start = datetime.datetime.now()
     for ds in datestamps:
         for crawlAgent in crawlAgents:
             url = "http://wat.s3-us-gov-west-1.amazonaws.com/data/escort/crawl/%s__%s.tgz" % (crawlAgent, ds)
-            dailyDir = os.path.join("/home/philpot/arch", crawlAgent, str(ds))
+            dailyDir = os.path.join(workdir, crawlAgent, str(ds))
             if os.path.isdir(dailyDir):
                 print "already fetched dir %s" % dailyDir
             else:
-                downloadTo = os.path.join("/home/philpot/arch", crawlAgent, "%s__%s.tgz" % (crawlAgent, ds))
+                downloadTo = os.path.join(workdir, crawlAgent, "%s__%s.tgz" % (crawlAgent, ds))
                 util.ensureDirectoriesExist(downloadTo)
                 if util.checkUrl(url):
                     print >> sys.stderr, "Fetch %s" % url
                     util.chunkedFetchUrl(url, downloadTo)
                     print >> sys.stderr, "Extract %s" % url
                     try:
-                        subprocess.check_call(["tar", "x", "-z", "-C", os.path.join("/home/philpot/arch", crawlAgent), "-f", downloadTo])
+                        subprocess.check_call(["tar", "x", "-z", "-C", os.path.join(workdir, crawlAgent), "-f", downloadTo])
                     except subprocess.CalledProcessError as e:
                         print >> sys.stderr, "Failed to extract from %s" % downloadTo
                     print >> sys.stderr, "Delete tarball %s" % downloadTo
                     os.remove(downloadTo)
-                    print >> sys.stderr, "Drop images from %s" % (os.path.join("/home/philpot/arch", crawlAgent, str(ds)))
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "images1.backpage.com"), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "images2.backpage.com"), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "images3.backpage.com"), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "www..backpage.com"), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-alabama.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-albany.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-albuquerque.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-arizona.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-atlanta.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-austin.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-baltimore.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-biloxi.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-boston.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-buffalo.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-carolina.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-chicago.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-dallas.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-dc.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-denver.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-guide.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-hartford.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-hawaii.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-houston.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-indiana.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-kansascity.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-la.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-lasvegas.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-louisville.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-miami.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-michigan.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-minn.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-naples.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-nashville.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-nebraska.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-newjersey.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-nola.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-northflorida.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-ny.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-ohio.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-oklahoma.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-philly.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-pittsburgh.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-portland.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-providence.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-reno.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-sandiego.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-sanjose.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-seattle.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-stlouis.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-tampa.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-utah.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-virginia.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-wisconsin.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-alabama.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-albany.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-albuquerque.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-arizona.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-atlanta.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-austin.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-baltimore.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-biloxi.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-boston.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-buffalo.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-carolina.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-chicago.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-dallas.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-dc.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-denver.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-guide.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-hartford.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-hawaii.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-houston.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-indiana.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-kansascity.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-la.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-lasvegas.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-louisville.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-miami.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-michigan.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-minn.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-naples.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-nashville.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-nebraska.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-newjersey.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-nola.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-northflorida.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-ny.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-ohio.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-oklahoma.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-philly.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-pittsburgh.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-portland.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-providence.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-reno.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-sandiego.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-sanjose.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-seattle.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-stlouis.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-tampa.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-utah.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-virginia.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.eros-wisconsin.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.cityvibe.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'images.cityvibe.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'classifieds.myredbook.com'), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'www.humaniplex.com'), True)
+                    if omitImages:
+                        print >> sys.stderr, "Drop images from %s" % (os.path.join(workdir, crawlAgent, str(ds)))
+                        shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), "images1.backpage.com"), True)
+                        shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), "images2.backpage.com"), True)
+                        shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), "images3.backpage.com"), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), "www.backpage.com"), True)
+                    print >> sys.stderr, "Drop non-BP data from %s" % (os.path.join(workdir, crawlAgent, str(ds)))
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-alabama.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-albany.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-albuquerque.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-arizona.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-atlanta.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-austin.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-baltimore.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-biloxi.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-boston.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-buffalo.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-carolina.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-chicago.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-dallas.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-dc.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-denver.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-guide.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-hartford.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-hawaii.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-houston.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-indiana.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-kansascity.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-la.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-lasvegas.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-louisville.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-miami.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-michigan.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-minn.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-naples.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-nashville.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-nebraska.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-newjersey.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-nola.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-northflorida.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-ny.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-ohio.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-oklahoma.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-philly.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-pittsburgh.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-portland.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-providence.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-reno.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-sandiego.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-sanjose.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-seattle.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-stlouis.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-tampa.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-utah.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-virginia.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'cdn-w.eros-wisconsin.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-alabama.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-albany.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-albuquerque.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-arizona.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-atlanta.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-austin.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-baltimore.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-biloxi.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-boston.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-buffalo.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-carolina.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-chicago.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-dallas.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-dc.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-denver.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-guide.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-hartford.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-hawaii.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-houston.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-indiana.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-kansascity.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-la.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-lasvegas.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-louisville.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-miami.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-michigan.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-minn.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-naples.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-nashville.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-nebraska.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-newjersey.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-nola.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-northflorida.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-ny.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-ohio.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-oklahoma.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-philly.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-pittsburgh.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-portland.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-providence.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-reno.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-sandiego.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-sanjose.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-seattle.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-stlouis.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-tampa.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-utah.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-virginia.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.eros-wisconsin.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.cityvibe.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'images.cityvibe.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'classifieds.myredbook.com'), True)
+                    shutil.rmtree(os.path.join(workdir, crawlAgent, str(ds), 'www.humaniplex.com'), True)
                 else:
                     print >> sys.stderr, "No such URL %s" % url
     end = datetime.datetime.now()
     delta = end - start
     print >> sys.stderr, "ELAPSED downloadBackpageAds is %s" % elapsed(delta)
 
-def dbpa(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
-    return downloadBackpageAds(datestamps=datestamps, crawlAgents=crawlAgents)
+def dbpa(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, omitImages=OMITIMAGES):
+    return downloadBackpageAds(datestamps=datestamps, crawlAgents=crawlAgents, omitImages=omitImages)
 
-def download(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
-    return downloadBackpageAds(datestamps=datestamps, crawlAgents=crawlAgents)
+def download(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, omitImages=OMITIMAGES):
+    return downloadBackpageAds(datestamps=datestamps, crawlAgents=crawlAgents, omitImages=omitImages)
             
-def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxAttempts=5):
+def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxAttempts=5, omitImages=OMITIMAGES):
+    workdir = "/home/philpot/arch"
+    workdir = "/mnt/data3/work/arch"
     start = datetime.datetime.now()
     i=0
     remaining = limit
     for crawlAgent in crawlAgents:
         for datestamp in datestamps:
-            for glob in iglob(os.path.join('/home/philpot/arch', crawlAgent, str(datestamp), '*.backpage.com', "FemaleEscorts")):
+            for glob in iglob(os.path.join(workdir, crawlAgent, str(datestamp), '*.backpage.com', "FemaleEscorts")):
                 sentinel = os.path.join(glob, "..", "PROCESSED")
                 if os.path.isfile(sentinel):
                     print "skipping completed %s" % os.path.normpath(os.path.dirname(sentinel))
@@ -262,7 +270,7 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxA
                     for root, dirnames, filenames in os.walk(glob):
                         for filename in filenames:
                             pathname = os.path.join(root, filename)
-                            rel = os.path.relpath(pathname, start='/home/philpot/arch')
+                            rel = os.path.relpath(pathname, start=workdir)
                             destination = urllib2.quote(rel)
                             # if limit < sys.maxint:
                             #     print "will store %s as %s (enc %s)" % (pathname, rel, destination)
@@ -297,12 +305,12 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxA
     delta = end - start
     print >> sys.stderr, "ELAPSED store is %s" % elapsed(delta)
 
-def downloadStore(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
+def downloadStore(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, omitImages=OMITIMAGES):
     start = datetime.datetime.now()
     for datestamp in datestamps:
         for crawlAgent in crawlAgents:
-            download([datestamp],[crawlAgent])
-            store([datestamp],[crawlAgent])
+            download([datestamp],[crawlAgent],omitImages)
+            store([datestamp],[crawlAgent],omitImages)
     end = datetime.datetime.now()
     delta = end - start
     print >> sys.stderr, "ELAPSED downloadStore is %s" % elapsed(delta)
