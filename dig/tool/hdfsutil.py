@@ -101,13 +101,14 @@ KD2 = [ds for ds in genDatestamps(start=20130701, end=20130731)]
 KD3 = [ds for ds in genDatestamps(start=20130801, end=20130831)]
 KD4 = [ds for ds in genDatestamps(start=20130901, end=20130930)]
 KD5 = [ds for ds in genDatestamps(start=20131001, end=20131031)]
-KD6 = [ds for ds in genDatestamps(start=20131101, end=20131131)]
+KD6 = [ds for ds in genDatestamps(start=20131101, end=20131130)]
 KD7 = [ds for ds in genDatestamps(start=20131201, end=20131231)]
 
 
 SITEKEYS = True
+OMITIMAGES = True
 
-def downloadBackpageAds(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
+def downloadBackpageAds(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, omitImages=OMITIMAGES):
     start = datetime.datetime.now()
     for ds in datestamps:
         for crawlAgent in crawlAgents:
@@ -128,11 +129,13 @@ def downloadBackpageAds(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
                         print >> sys.stderr, "Failed to extract from %s" % downloadTo
                     print >> sys.stderr, "Delete tarball %s" % downloadTo
                     os.remove(downloadTo)
-                    print >> sys.stderr, "Drop images from %s" % (os.path.join("/home/philpot/arch", crawlAgent, str(ds)))
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "images1.backpage.com"), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "images2.backpage.com"), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "images3.backpage.com"), True)
-                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "www..backpage.com"), True)
+                    if omitImages:
+                        print >> sys.stderr, "Drop images from %s" % (os.path.join("/home/philpot/arch", crawlAgent, str(ds)))
+                        shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "images1.backpage.com"), True)
+                        shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "images2.backpage.com"), True)
+                        shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "images3.backpage.com"), True)
+                    shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), "www.backpage.com"), True)
+                    print >> sys.stderr, "Drop non-BP data from %s" % (os.path.join("/home/philpot/arch", crawlAgent, str(ds)))
                     shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-alabama.com'), True)
                     shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-albany.com'), True)
                     shutil.rmtree(os.path.join("/home/philpot/arch", crawlAgent, str(ds), 'cdn-w.eros-albuquerque.com'), True)
@@ -241,13 +244,13 @@ def downloadBackpageAds(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
     delta = end - start
     print >> sys.stderr, "ELAPSED downloadBackpageAds is %s" % elapsed(delta)
 
-def dbpa(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
-    return downloadBackpageAds(datestamps=datestamps, crawlAgents=crawlAgents)
+def dbpa(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, omitImages=OMITIMAGES):
+    return downloadBackpageAds(datestamps=datestamps, crawlAgents=crawlAgents, omitImages=omitImages)
 
-def download(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
-    return downloadBackpageAds(datestamps=datestamps, crawlAgents=crawlAgents)
+def download(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, omitImages=OMITIMAGES):
+    return downloadBackpageAds(datestamps=datestamps, crawlAgents=crawlAgents, omitImages=omitImages)
             
-def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxAttempts=5):
+def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxAttempts=5, omitImages=OMITIMAGES):
     start = datetime.datetime.now()
     i=0
     remaining = limit
@@ -297,12 +300,12 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxA
     delta = end - start
     print >> sys.stderr, "ELAPSED store is %s" % elapsed(delta)
 
-def downloadStore(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS):
+def downloadStore(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, omitImages=OMITIMAGES):
     start = datetime.datetime.now()
     for datestamp in datestamps:
         for crawlAgent in crawlAgents:
-            download([datestamp],[crawlAgent])
-            store([datestamp],[crawlAgent])
+            download([datestamp],[crawlAgent],omitImages)
+            store([datestamp],[crawlAgent],omitImages)
     end = datetime.datetime.now()
     delta = end - start
     print >> sys.stderr, "ELAPSED downloadStore is %s" % elapsed(delta)
