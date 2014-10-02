@@ -21,7 +21,14 @@ def datestringToEpoch(datestring, fmt="%Y-%m-%d %H:%M:%S"):
 def datestringToDatestamp(datestring, fmt="%Y-%m-%d %H:%M:%S"):
     return time.strftime("%Y%m%d", time.strptime(datestring, fmt))
     
-# hashlib.sha224("Nobody inspects the spammish repetition").hexdigest()
+def downloadImage(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.content
+
+HOST="karma-dig-4.hdp.azure.karma.isi.edu"
+host = HOST
+d = defaultdict(dict)
 
 ISI_IMAGE_URLS = ["http://studio.isi.edu/arch/data/escort/20140630/images3.backpage.com/imager/u/medium/132718578/PicsArt_1403968833653.jpg",
                   "http://studio.isi.edu/arch/data/escort/20140630/images3.backpage.com/imager/u/medium/101116297/100MEDIA_IMAG0109.jpg",
@@ -2751,115 +2758,6 @@ ISI_AD_URLS = [ # 7/1
                "https://karmadigstorage.blob.core.windows.net/arch/thrall02/20140702/sf.backpage.com/FemaleEscorts/your-ultimate-fantasy-23/16531582",
                "https://karmadigstorage.blob.core.windows.net/arch/thrall02/20140702/sf.backpage.com/FemaleEscorts/yoyo-chinese-jewel_san-francisco_call-415-602-3612-out-call-arrive-in-30-minutes-23/18201186"]
 
-def downloadImage(url):
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.content
-
-HOST="karma-dig-4.hdp.azure.karma.isi.edu"
-host = HOST
-d = defaultdict(dict)
-
-
-# for url in ISI_IMAGE_URLS[0:0]:
-#     sig = hashlib.sha1(url[48:]).hexdigest().upper()
-#     datestamp = url[39:47]
-#     epoch = calendar.timegm(time.strptime(datestamp + " 12:00:01 am", "%Y%m%d %I:%M:%S %p")*1000)
-#     memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
-#     isig = hashlib.sha1(downloadImage(url)).hexdigest().upper()
-#     content_url = "http://%s/image/%s-%s" % (host, isig, epoch)
-#     # our object ID uniquely identifies the source object
-#     uid = hashlib.sha1(url[7:]).hexdigest().upper()
-#     d[uid] = {"original_url": url,
-#               "memex_url": memex_url,
-#               "content_url": content_url}
-
-# rewrite the above
-
-for cache_url in ISI_IMAGE_URLS[0:5]:
-    print cache_url
-    try:
-        native_url = "http://%s" % cache_url[48:]
-        # our object ID uniquely identifies the source object
-        uid = hashlib.sha1(native_url[7:]).hexdigest().upper()
-
-        # in general these might be distinct
-        # cache_url = native_url
-        
-        datestamp = cache_url[39:47]
-        epoch = datestampToEpoch(datestamp)
-
-        sig = hashlib.sha1(native_url).hexdigest().upper()
-        isig = hashlib.sha1(downloadImage(cache_url)).hexdigest().upper()
-        content_url = "http://%s/image/%s-%s" % (host, isig, epoch)
-
-        memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
-        d[uid] = {"native_url": native_url,
-                  "cache_url": cache_url,
-                  "memex_url": memex_url,
-                  "content_url": content_url}
-    except Exception as e:
-        print >> sys.stderr, "Exception %r ignored" % e
-
-
-
-# ["http://images1.backpage.com/imager/u/large/63424885/j5.jpg","2014-07-15 16:24:42","2014-07-15 16:24:13","https://s3.amazonaws.com/roxyimages/54dc255cdb4f81a5881865fd4cce84478428432d.jpg"],
-# or 
-# ["http://www.myproviderguide.com/p/f0d4143f7773418d0b72484cb5ce628b.jpg","2014-06-10 17:48:33","2014-07-16 03:27:34","https://s3.amazonaws.com/roxyimages/d80a523daa921c678c4202b07f801dec14fca069.jpg"]
-
-
-# ISTR_IMAGE_URLS = ISTR_IMAGE_URLS[0:20] + ISTR_IMAGE_URLS[-20:]
-ISTR_IMAGE_URLS = []
-
-for (native_url,importtime,modtime,location) in ISTR_IMAGE_URLS:
-    try:
-        native_url = native_url
-        # our object ID uniquely identifies the source object
-        uid = hashlib.sha1(native_url[7:]).hexdigest().upper()
-
-        # in general these might be distinct
-        cache_url = native_url
-
-        sig = hashlib.sha1(native_url).hexdigest().upper()
-        epoch = calendar.timegm(time.strptime(modtime, "%Y-%m-%d %H:%M:%S"))
-        isig = hashlib.sha1(downloadImage(cache_url)).hexdigest().upper()
-
-        memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
-        content_url = "http://%s/image/%s-%s" % (host, isig, epoch)
-        d[uid] = {"native_url": native_url,
-                  "cache_url": cache_url,
-                  "memex_url": memex_url,
-                  "content_url": content_url}
-    except Exception as e:
-        print >> sys.stderr, "Exception %r ignored" % e
-
-ISI_AD_URLS = ISI_AD_URLS[0:20] + ISI_AD_URLS[-20:]
-ISI_AD_URLS = []
-
-for cache_url in ISI_AD_URLS:
-    try:
-        native_url = "http://%s" % cache_url[69:]
-        # our object ID uniquely identifies the source object
-        uid = hashlib.sha1(native_url[7:]).hexdigest().upper()
-
-        # in general these might be distinct
-        # cache_url = native_url
-        
-        datestamp = cache_url[60:68]
-        epoch = datestampToEpoch(datestamp)
-
-        sig = hashlib.sha1(native_url).hexdigest().upper()
-        isig = hashlib.sha1(downloadImage(cache_url)).hexdigest().upper()
-
-        memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
-        content_url = "http://%s/image/%s-%s" % (host, isig, epoch)
-        d[uid] = {"native_url": native_url,
-                  "cache_url": cache_url,
-                  "memex_url": memex_url,
-                  "content_url": content_url}
-    except Exception as e:
-        print >> sys.stderr, "Exception %r ignored" % e
-
 ISTR_AD_URLS = [["http://sf.backpage.com/FemaleEscorts/can-i-entice-you-to-an-open-minded-blonde-treatkiss-ur-way-to-heaven-22/11311597","2014-04-03 02:54:49","2014-07-26 01:50:06"],
                 ["http://sf.backpage.com/FemaleEscorts/sugar-and-spice-let-me-pamper-u/7849399","2014-04-03 02:54:53","2014-07-26 01:50:07"],
                 ["http://sf.backpage.com/FemaleEscorts/making-your-andgtfantasys-a-reait-_-vrthing-ou-ned-andgt-23/15555797","2014-04-03 02:55:09","2014-07-26 01:50:10"],
@@ -3359,31 +3257,115 @@ ISTR_AD_URLS = [["http://sf.backpage.com/FemaleEscorts/can-i-entice-you-to-an-op
                 ["http://www.myproviderguide.com/escorts/san-francisco/free-posts/w4m/5603792_sexy-ddd-squirter-babe.html","2014-04-03 07:35:15","2014-04-03 07:35:15"],
                 ["http://www.myproviderguide.com/escorts/san-francisco/free-posts/w4m/5603648_new-beautiful-smart-energetic-.html","2014-04-03 07:35:16","2014-04-03 07:35:16"]]
 
-# ISTR_AD_URLS = ISTR_AD_URLS[0:20] + ISTR_AD_URLS[-20:]
-ISTR_AD_URLS = []
+def process_isi_images(urls=ISI_IMAGE_URLS):
+    for cache_url in urls:
+        try:
+            native_url = "http://%s" % cache_url[48:]
+            # our object ID uniquely identifies the source object
+            uid = hashlib.sha1(native_url[7:]).hexdigest().upper()
 
-for (native_url,importtime,modtime) in ISTR_AD_URLS:
-    try:
-        cache_url = native_url
-        # datestamp = datestringToDatestamp(importtime)
-        # cache_url = "https://karmadigstorage.blob.core.windows.net/arch/istr_memex_small/%s/%s" % (datestamp, native_url[7:])
-        # our object ID uniquely identifies the source object
-        uid = hashlib.sha1(native_url[7:]).hexdigest().upper()
+            # in general these might be distinct
+            # cache_url = native_url
 
-        # in general these might be distinct
-        # cache_url = native_url
-        
-        epoch = datestringToEpoch(importtime)
+            datestamp = cache_url[39:47]
+            epoch = datestampToEpoch(datestamp)
 
-        sig = hashlib.sha1(native_url).hexdigest().upper()
+            sig = hashlib.sha1(native_url).hexdigest().upper()
+            isig = hashlib.sha1(downloadImage(cache_url)).hexdigest().upper()
+            content_url = "http://%s/image/%s-%s" % (host, isig, epoch)
 
-        memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
-        d[uid] = {"native_url": native_url,
-                  "cache_url": cache_url,
-                  "memex_url": memex_url}
-    except Exception as e:
-        print >> sys.stderr, "Exception %r ignored" % e
-        raise
+            memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
+            d[uid] = {"native_url": native_url,
+                      "cache_url": cache_url,
+                      "memex_url": memex_url,
+                      "content_url": content_url}
+        except Exception as e:
+            print >> sys.stderr, "Exception %r ignored" % e
+
+
+
+# ["http://images1.backpage.com/imager/u/large/63424885/j5.jpg","2014-07-15 16:24:42","2014-07-15 16:24:13","https://s3.amazonaws.com/roxyimages/54dc255cdb4f81a5881865fd4cce84478428432d.jpg"],
+# or 
+# ["http://www.myproviderguide.com/p/f0d4143f7773418d0b72484cb5ce628b.jpg","2014-06-10 17:48:33","2014-07-16 03:27:34","https://s3.amazonaws.com/roxyimages/d80a523daa921c678c4202b07f801dec14fca069.jpg"]
+
+
+# ISTR_IMAGE_URLS = ISTR_IMAGE_URLS[0:20] + ISTR_IMAGE_URLS[-20:]
+ISTR_IMAGE_URLS = []
+
+def process_istr_images(urls=ISTR_IMAGE_URLS):
+    for (native_url,importtime,modtime,location) in urls:
+        try:
+            native_url = native_url
+            # our object ID uniquely identifies the source object
+            uid = hashlib.sha1(native_url[7:]).hexdigest().upper()
+
+            # in general these might be distinct
+            cache_url = native_url
+
+            sig = hashlib.sha1(native_url).hexdigest().upper()
+            epoch = calendar.timegm(time.strptime(modtime, "%Y-%m-%d %H:%M:%S"))
+            isig = hashlib.sha1(downloadImage(cache_url)).hexdigest().upper()
+
+            memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
+            content_url = "http://%s/image/%s-%s" % (host, isig, epoch)
+            d[uid] = {"native_url": native_url,
+                      "cache_url": cache_url,
+                      "memex_url": memex_url,
+                      "content_url": content_url}
+        except Exception as e:
+            print >> sys.stderr, "Exception %r ignored" % e
+
+ISI_AD_URLS = ISI_AD_URLS[0:20] + ISI_AD_URLS[-20:]
+ISI_AD_URLS = []
+
+def process_isi_ads(urls=ISI_AD_URLS):
+    for cache_url in urls:
+        try:
+            native_url = "http://%s" % cache_url[69:]
+            # our object ID uniquely identifies the source object
+            uid = hashlib.sha1(native_url[7:]).hexdigest().upper()
+
+            # in general these might be distinct
+            # cache_url = native_url
+
+            datestamp = cache_url[60:68]
+            epoch = datestampToEpoch(datestamp)
+
+            sig = hashlib.sha1(native_url).hexdigest().upper()
+            isig = hashlib.sha1(downloadImage(cache_url)).hexdigest().upper()
+
+            memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
+            content_url = "http://%s/image/%s-%s" % (host, isig, epoch)
+            d[uid] = {"native_url": native_url,
+                      "cache_url": cache_url,
+                      "memex_url": memex_url,
+                      "content_url": content_url}
+        except Exception as e:
+            print >> sys.stderr, "Exception %r ignored" % e
+
+def process_istr_ads(urls=ISTR_AD_URLS):
+    for (native_url,importtime,modtime) in urls:
+        try:
+            cache_url = native_url
+            # datestamp = datestringToDatestamp(importtime)
+            # cache_url = "https://karmadigstorage.blob.core.windows.net/arch/istr_memex_small/%s/%s" % (datestamp, native_url[7:])
+            # our object ID uniquely identifies the source object
+            uid = hashlib.sha1(native_url[7:]).hexdigest().upper()
+
+            # in general these might be distinct
+            # cache_url = native_url
+
+            epoch = datestringToEpoch(importtime)
+
+            sig = hashlib.sha1(native_url).hexdigest().upper()
+
+            memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
+            d[uid] = {"native_url": native_url,
+                      "cache_url": cache_url,
+                      "memex_url": memex_url}
+        except Exception as e:
+            print >> sys.stderr, "Exception %r ignored" % e
+            raise
 
 def dumpBuild():
     with open('/tmp/build.json','w') as f:
