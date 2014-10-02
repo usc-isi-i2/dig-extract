@@ -3344,6 +3344,7 @@ def process_isi_ads(urls=ISI_AD_URLS):
             print >> sys.stderr, "Exception %r ignored" % e
 
 def process_istr_ads(urls=ISTR_AD_URLS):
+    count = 0
     for (native_url,importtime,modtime) in urls:
         try:
             cache_url = native_url
@@ -3363,11 +3364,13 @@ def process_istr_ads(urls=ISTR_AD_URLS):
             d[uid] = {"native_url": native_url,
                       "cache_url": cache_url,
                       "memex_url": memex_url}
+            count += 1
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
             raise
+    return count
 
 def dumpBuild():
     with open('/tmp/build.json','w') as f:
-        print >> f, json.dumps(d, indent=4, sort_keys=True)
-
+        for k,v in d.iteritems():
+            print >> f, json.dumps({k: v}, sort_keys=True)
