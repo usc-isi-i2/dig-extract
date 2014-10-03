@@ -3258,6 +3258,7 @@ ISTR_AD_URLS = [["http://sf.backpage.com/FemaleEscorts/can-i-entice-you-to-an-op
                 ["http://www.myproviderguide.com/escorts/san-francisco/free-posts/w4m/5603648_new-beautiful-smart-energetic-.html","2014-04-03 07:35:16","2014-04-03 07:35:16"]]
 
 def process_isi_images(urls=ISI_IMAGE_URLS):
+    count = 0
     for cache_url in urls:
         try:
             native_url = "http://%s" % cache_url[48:]
@@ -3279,20 +3280,17 @@ def process_isi_images(urls=ISI_IMAGE_URLS):
                       "cache_url": cache_url,
                       "memex_url": memex_url,
                       "content_url": content_url}
+            count += 1
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
-
-
+    return count
 
 # ["http://images1.backpage.com/imager/u/large/63424885/j5.jpg","2014-07-15 16:24:42","2014-07-15 16:24:13","https://s3.amazonaws.com/roxyimages/54dc255cdb4f81a5881865fd4cce84478428432d.jpg"],
 # or 
 # ["http://www.myproviderguide.com/p/f0d4143f7773418d0b72484cb5ce628b.jpg","2014-06-10 17:48:33","2014-07-16 03:27:34","https://s3.amazonaws.com/roxyimages/d80a523daa921c678c4202b07f801dec14fca069.jpg"]
 
-
-# ISTR_IMAGE_URLS = ISTR_IMAGE_URLS[0:20] + ISTR_IMAGE_URLS[-20:]
-ISTR_IMAGE_URLS = []
-
 def process_istr_images(urls=ISTR_IMAGE_URLS):
+    count = 0
     for (native_url,importtime,modtime,location) in urls:
         try:
             native_url = native_url
@@ -3312,13 +3310,13 @@ def process_istr_images(urls=ISTR_IMAGE_URLS):
                       "cache_url": cache_url,
                       "memex_url": memex_url,
                       "content_url": content_url}
+            count += 1
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
-
-ISI_AD_URLS = ISI_AD_URLS[0:20] + ISI_AD_URLS[-20:]
-ISI_AD_URLS = []
+    return count
 
 def process_isi_ads(urls=ISI_AD_URLS):
+    count = 0
     for cache_url in urls:
         try:
             native_url = "http://%s" % cache_url[69:]
@@ -3340,8 +3338,10 @@ def process_isi_ads(urls=ISI_AD_URLS):
                       "cache_url": cache_url,
                       "memex_url": memex_url,
                       "content_url": content_url}
+            count += 1
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
+    return count
 
 def process_istr_ads(urls=ISTR_AD_URLS):
     count = 0
