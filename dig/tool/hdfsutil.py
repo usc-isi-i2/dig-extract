@@ -97,6 +97,7 @@ DATESTAMPS = [ds for ds in genDatestamps(start=20140101, end=20140103)]
 DATESTAMPS = [ds for ds in genDatestamps(start=20130101, end=20141231)]
 DATESTAMPS = [ds for ds in genDatestamps(start=20130513, end=20131231)]
 KD1=DATESTAMPS[0:49]
+KD0 = [20130513, 20130514, 20130515]
 KD1 = [ds for ds in genDatestamps(start=20130601, end=20130630)]
 KD2 = [ds for ds in genDatestamps(start=20130701, end=20130731)]
 KD3 = [ds for ds in genDatestamps(start=20130801, end=20130831)]
@@ -261,46 +262,53 @@ def store(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, limit=sys.maxint, maxA
     remaining = limit
     for crawlAgent in crawlAgents:
         for datestamp in datestamps:
-            for glob in iglob(os.path.join(workdir, crawlAgent, str(datestamp), '*.backpage.com', "FemaleEscorts")):
-                sentinel = os.path.join(glob, "..", "PROCESSED")
-                if os.path.isfile(sentinel):
-                    print "skipping completed %s" % os.path.normpath(os.path.dirname(sentinel))
-                else:
-                    print "processing %s" % os.path.normpath(os.path.dirname(sentinel))
-                    for root, dirnames, filenames in os.walk(glob):
-                        for filename in filenames:
-                            pathname = os.path.join(root, filename)
-                            rel = os.path.relpath(pathname, start=workdir)
-                            destination = urllib2.quote(rel)
-                            # if limit < sys.maxint:
-                            #     print "will store %s as %s (enc %s)" % (pathname, rel, destination)
-                            #     print """bs.put_block_blob_from_path(%s, %s, %s, x_ms_blob_content_type='text/html')""" % (mycontainer, destination, pathname)
+            for tail in [['*.backpage.com', 'FemaleEscorts'],
+                         ['images1.backpage.com'],
+                         ['images2.backpage.com'],
+                         ['images3.backpage.com']]:
+                joinedPathSpec = os.path.join(workdir, crawlAgent, str(datestamp), *tail)
+                for glob in iglob(os.path.join(workdir, crawlAgent, str(datestamp), joinedPathSpec)):
+                    # sentinel = os.path.join(glob, "..", "PROCESSED")
+                    sentinel = os.path.join(workdir, crawlAgent, str(datestamp), tail[0], "PROCESSED")
+                    if os.path.isfile(sentinel):
+                        print "skipping completed %s" % os.path.normpath(os.path.dirname(sentinel))
+                    else:
+                        print "processing %s" % os.path.normpath(os.path.dirname(sentinel))
+                        for root, dirnames, filenames in os.walk(glob):
 
-                            try:
-                                success = False
-                                remainingAttempts = maxAttempts
-                                while not success and remainingAttempts>0:
-                                    try:
-                                        bs.put_block_blob_from_path(mycontainer, destination, pathname,
-                                                                    x_ms_blob_content_type='text/html')
-                                        success = True
-                                        break
-                                    except socket.error as se:
-                                        remainingAttempts -= 1
-                                        print >> sys.stderr, "Uploading %s failed, sleep 5 sec, %d more tries" % (pathname, remainingAttempts)
-                                        time.sleep(5)
-                            except WindowsAzureError as e:
-                                print >> sys.stderr, "Azure failure [%r], skipping"
-                            i += 1
-                            if i%100 == 0:
-                                print i
-                            remaining -= 1
-                            if remaining <= 0:
-                                return
-                    print "processed %s" % os.path.normpath(os.path.dirname(sentinel))
-                    util.touch(sentinel)
-                print "delete ads dir %s" % glob
-                shutil.rmtree(glob)
+                            for filename in filenames:
+                                pathname = os.path.join(root, filename)
+                                rel = os.path.relpath(pathname, start=workdir)
+                                destination = urllib2.quote(rel)
+                                # if limit < sys.maxint:
+                                #     print "will store %s as %s (enc %s)" % (pathname, rel, destination)
+                                #     print """bs.put_block_blob_from_path(%s, %s, %s, x_ms_blob_content_type='text/html')""" % (mycontainer, destination, pathname)
+
+                                try:
+                                    success = False
+                                    remainingAttempts = maxAttempts
+                                    while not success and remainingAttempts>0:
+                                        try:
+                                            bs.put_block_blob_from_path(mycontainer, destination, pathname,
+                                                                        x_ms_blob_content_type='text/html')
+                                            success = True
+                                            break
+                                        except socket.error as se:
+                                            remainingAttempts -= 1
+                                            print >> sys.stderr, "Uploading %s failed, sleep 5 sec, %d more tries" % (pathname, remainingAttempts)
+                                            time.sleep(5)
+                                except WindowsAzureError as e:
+                                    print >> sys.stderr, "Azure failure [%r], skipping"
+                                i += 1
+                                if i%100 == 0:
+                                    print i
+                                remaining -= 1
+                                if remaining <= 0:
+                                    return
+                        print "processed %s" % os.path.normpath(os.path.dirname(sentinel))
+                        util.touch(sentinel)
+                    print "delete ads dir %s" % glob
+                    shutil.rmtree(glob)
     end = datetime.datetime.now()
     delta = end - start
     print >> sys.stderr, "ELAPSED store is %s" % elapsed(delta)
@@ -314,6 +322,9 @@ def downloadStore(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, omitImages=OMI
     end = datetime.datetime.now()
     delta = end - start
     print >> sys.stderr, "ELAPSED downloadStore is %s" % elapsed(delta)
+
+def ds(*args):
+    return downloadStore(*args)
 
 # def listAll():
 #     for blob in bs.list_blobs(mycontainer):
@@ -333,13 +344,13 @@ def downloadStore(datestamps=DATESTAMPS, crawlAgents=CRAWLAGENTS, omitImages=OMI
 # http://stackoverflow.com/a/24303682/2077242
 
 
-def listAll(prefix=None, outstream=sys.stdout):
+def listAll(container=mycontainer, prefix=None, outstream=sys.stdout):
     total = 0
     # bs = BlobService(account_name='<accountname>', account_key='<accountkey>')
     next_marker = None
     while True:
         try:
-            blobs = bs.list_blobs(mycontainer, maxresults=5000, marker=next_marker, prefix=prefix)
+            blobs = bs.list_blobs(container, maxresults=5000, marker=next_marker, prefix=prefix)
         except WindowsAzureError as e:
             print >> sys.stderr, "Failed to fetch [%s], exiting" % prefix
             break
