@@ -3337,7 +3337,10 @@ def process_isi_ads(urls=ISI_AD_URLS):
             d[uid] = {"native_url": native_url,
                       "cache_url": cache_url,
                       "memex_url": memex_url,
-                      "content_url": content_url}
+                      "content_url": content_url,
+                      "sha1": sig,
+                      "content_sha1": isig,
+                      "epoch": epoch}
             count += 1
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
@@ -3363,7 +3366,9 @@ def process_istr_ads(urls=ISTR_AD_URLS):
             memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
             d[uid] = {"native_url": native_url,
                       "cache_url": cache_url,
-                      "memex_url": memex_url}
+                      "memex_url": memex_url,
+                      "sha1": sig,
+                      "spoch": epoch}
             count += 1
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
