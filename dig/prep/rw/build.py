@@ -65,6 +65,9 @@ def datestampToEpoch(datestamp):
     epoch = calendar.timegm(time.strptime(datestamp + " 12:00:01 am", "%Y%m%d %I:%M:%S %p")*1000)
     return epoch
 
+def datestampToDatestring(datestamp):
+    return time.strftime("%Y-%m-%d", time.strptime(datestamp, "%Y%m%d")) + " 12:00:01 am"
+
 def datestringToEpoch(datestring, fmt="%Y-%m-%d %H:%M:%S"):
     epoch = calendar.timegm(time.strptime(datestring, fmt))
     return epoch
@@ -281,6 +284,13 @@ ISI_IMAGE_URLS = ["http://studio.isi.edu/arch/data/escort/20140630/images3.backp
                   "http://studio.isi.edu/arch/data/escort/20140630/images3.backpage.com/imager/u/medium/120858408/image.jpg",
                   "http://studio.isi.edu/arch/data/escort/20140630/images3.backpage.com/imager/u/medium/128876325/IMG_4354.jpg",
                   "http://studio.isi.edu/arch/data/escort/20140630/images3.backpage.com/imager/u/medium/130023047/image-13.jpg"]
+
+ISI_IMAGE_URLS2 = [["http://%s" % cache_url[48:],
+                    datestampToDatestring(cache_url[39:47]),
+                    datestampToDatestring(cache_url[39:47]),
+                    cache_url,
+                    "backpage"]
+                   for cache_url in ISI_IMAGE_URLS]
 
 ISTR_IMAGE_URLS = [
     # backpage
@@ -2409,6 +2419,16 @@ ISTR_IMAGE_URLS = [
     ["http://www.myproviderguide.com/p/ac0e4ee7413ed46cb42d734485549ff9.jpg","2014-06-10 17:48:33","2014-07-16 03:27:34","https://s3.amazonaws.com/roxyimages/ecd2ccfbeb3e911e9919f2ab72f32311a7f9ac4d.jpg"],
     ["http://www.myproviderguide.com/p/0c1950aa5db9cb4e8da46c2af4691205.jpg","2014-06-10 17:48:33","2014-07-16 03:27:34","https://s3.amazonaws.com/roxyimages/6643b53edcc5f6aacb1dda8992e3e8304492bd91.jpg"],
     ["http://www.myproviderguide.com/p/f0d4143f7773418d0b72484cb5ce628b.jpg","2014-06-10 17:48:33","2014-07-16 03:27:34","https://s3.amazonaws.com/roxyimages/d80a523daa921c678c4202b07f801dec14fca069.jpg"]]
+
+def guess_source(u):
+    if "backpage" in u:
+        return "backpage"
+    elif "myproviderguide" in u:
+        return "myproviderguide"
+    else:
+        return None
+
+ISTR_IMAGE_URLS2 = [[u1,d1,d2,u2,guess_source(u1)] for (u1,d1,d2,u2) in ISTR_IMAGE_URLS]
 
 ISI_AD_URLS = [ # 7/1
                "https://karmadigstorage.blob.core.windows.net/arch/thrall01/20140701/sf.backpage.com/FemaleEscorts/1-red-hot_-hard-body-red-hair-_open-minded-21/11654860",
