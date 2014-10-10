@@ -9,6 +9,57 @@ import requests
 import simplejson as json
 from collections import defaultdict
 
+import mysql.connector
+
+def fetch_ads(limit=5, retries=5):
+    success = False
+    while not success and retries > 0:
+        try:
+            cnx = mysql.connector.connect(user='sqluser', 
+                                          password='sqlpassword',
+                                          host='karma-dig-db.cloudapp.net',
+                                          database='memex_small')
+            cursor = cnx.cursor()
+
+            query = ("""SELECT a.url,a.importtime,a.modtime,s.name from ads a join sources s on a.sources_id=s.id limit %s""")
+            cursor.execute(query, [limit])
+            success = True
+
+            for (url,importtime,modtime,source) in cursor:
+                yield (url,str(importtime),str(modtime),source)
+        finally:
+            try:
+                cnx.close()
+            except:
+                pass
+        retries -= 1
+        print >> sys.stderr, "retry ads: %s more" % retries
+
+def fetch_images(limit=5, retries=5):
+    success = False
+    while not success and retries > 0:
+        try:
+            cnx = mysql.connector.connect(user='sqluser', 
+                                          password='sqlpassword',
+                                          host='karma-dig-db.cloudapp.net',
+                                          database='memex_small')
+            cursor = cnx.cursor()
+
+            query = ("""SELECT i.url,i.importtime,i.modtime,i.location,s.name from images i join sources s on i.sources_id=s.id limit %s""")
+            cursor.execute(query, [limit])
+            success = True
+
+            for (url,importtime,modtime,cache_url,source) in cursor:
+                yield (url,str(importtime),str(modtime),cache_url,source)
+        finally:
+            try:
+                cnx.close()
+            except:
+                pass
+        retries -= 1
+        print >> sys.stderr, "retry images: %s more" % retries
+
+
 def datestampToEpoch(datestamp):
     # make up the times, just pick 12:00:01.000
     epoch = calendar.timegm(time.strptime(datestamp + " 12:00:01 am", "%Y%m%d %I:%M:%S %p")*1000)
@@ -3291,25 +3342,42 @@ def process_isi_images(urls=ISI_IMAGE_URLS):
 
 def process_istr_images(urls=ISTR_IMAGE_URLS):
     count = 0
-    for (native_url,importtime,modtime,location) in urls:
+    for (native_url,importtime,modtime,cache_url,source) in urls:
         try:
             native_url = native_url
             # our object ID uniquely identifies the source object
             uid = hashlib.sha1(native_url[7:]).hexdigest().upper()
 
             # in general these might be distinct
-            cache_url = native_url
+            # cache_url = native_url
 
-            sig = hashlib.sha1(native_url).hexdigest().upper()
-            epoch = calendar.timegm(time.strptime(modtime, "%Y-%m-%d %H:%M:%S"))
-            isig = hashlib.sha1(downloadImage(cache_url)).hexdigest().upper()
+            sig = None
+            try:
+                sig = hashlib.sha1(native_url).hexdigest().upper()
+            except:
+                pass
+
+            epoch = None
+            try:
+                epoch = calendar.timegm(time.strptime(modtime, "%Y-%m-%d %H:%M:%S"))
+            except:
+                pass
+            isig = None
+            try:
+                isig = hashlib.sha1(downloadImage(cache_url)).hexdigest().upper()
+            except:
+                pass
 
             memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
             content_url = "http://%s/image/%s-%s" % (host, isig, epoch)
             d[uid] = {"native_url": native_url,
                       "cache_url": cache_url,
                       "memex_url": memex_url,
-                      "content_url": content_url}
+                      "content_url": content_url,
+                      "source": source,
+                      "epoch": epoch,
+                      "sha1": sig,
+                      "content_sha1": isig}
             count += 1
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
@@ -3340,7 +3408,8 @@ def process_isi_ads(urls=ISI_AD_URLS):
                       "content_url": content_url,
                       "sha1": sig,
                       "content_sha1": isig,
-                      "epoch": epoch}
+                      "epoch": epoch,
+                      "source": source}
             count += 1
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
@@ -3348,9 +3417,8 @@ def process_isi_ads(urls=ISI_AD_URLS):
 
 def process_istr_ads(urls=ISTR_AD_URLS):
     count = 0
-    for (native_url,importtime,modtime) in urls:
+    for (native_url,importtime,modtime,source) in urls:
         try:
-            cache_url = native_url
             # datestamp = datestringToDatestamp(importtime)
             # cache_url = "https://karmadigstorage.blob.core.windows.net/arch/istr_memex_small/%s/%s" % (datestamp, native_url[7:])
             # our object ID uniquely identifies the source object
@@ -3358,17 +3426,29 @@ def process_istr_ads(urls=ISTR_AD_URLS):
 
             # in general these might be distinct
             # cache_url = native_url
+            # some doubt that this is complete?
+            datestamp = datestringToDatestamp(importtime)
+            cache_url = "https://karmadigstorage.blob.core.windows.net/arch/istr_memex_small/%s/%s" % (datestamp, native_url[7:])
 
-            epoch = datestringToEpoch(importtime)
+            epoch = None
+            try:
+                epoch = datestringToEpoch(importtime)
+            except:
+                pass
 
-            sig = hashlib.sha1(native_url).hexdigest().upper()
+            sig = None
+            try:
+                sig = hashlib.sha1(native_url).hexdigest().upper()
+            except:
+                pass
 
             memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
             d[uid] = {"native_url": native_url,
                       "cache_url": cache_url,
                       "memex_url": memex_url,
                       "sha1": sig,
-                      "spoch": epoch}
+                      "epoch": epoch,
+                      "source": source}
             count += 1
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
@@ -3377,5 +3457,11 @@ def process_istr_ads(urls=ISTR_AD_URLS):
 
 def dumpBuild():
     with open('/tmp/build.json','w') as f:
+        for k,v in d.iteritems():
+            print >> f, json.dumps({k: v}, sort_keys=True)
+
+
+def dumpBuild2():
+    with open('/tmp/build2.json','w') as f:
         for k,v in d.iteritems():
             print >> f, json.dumps({k: v}, sort_keys=True)
