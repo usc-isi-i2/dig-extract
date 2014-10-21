@@ -343,7 +343,6 @@ def ds(*args):
 # compare
 # http://stackoverflow.com/a/24303682/2077242
 
-
 def listAll(container=mycontainer, prefix=None, outstream=sys.stdout):
     total = 0
     # bs = BlobService(account_name='<accountname>', account_key='<accountkey>')
