@@ -11,6 +11,10 @@ from collections import defaultdict
 
 import mysql.connector
 
+import csv
+
+from util import echo
+
 def fetch_ads(limit=5, retries=5):
     success = False
     while not success and retries > 0:
@@ -59,6 +63,23 @@ def fetch_images(limit=5, retries=5):
         retries -= 1
         print >> sys.stderr, "retry images: %s more" % retries
 
+def load_ads(limit=5, retries=5,pathname="/tmp/istr_memex_small_ads.tsv"):
+    with open(pathname, 'r') as tsvfile:
+        rdr = csv.reader(tsvfile, delimiter='\t')
+        for (url,importtime,modtime,source) in rdr:
+            yield (url,str(importtime),str(modtime),source)
+            limit -= 1
+            if limit < 0:
+                break
+
+def load_images(limit=5, retries=5,pathname="/tmp/istr_memex_small_images.tsv"):
+    with open(pathname, 'r') as tsvfile:
+        rdr = csv.reader(tsvfile, delimiter='\t')
+        for (url,importtime,modtime,cache_url,source) in rdr:
+            yield (url,str(importtime),str(modtime),cache_url,source)
+            limit -= 1
+            if limit <= 0:
+                break
 
 def datestampToEpoch(datestamp):
     # make up the times, just pick 12:00:01.000
@@ -3328,6 +3349,9 @@ ISTR_AD_URLS = [["http://sf.backpage.com/FemaleEscorts/can-i-entice-you-to-an-op
                 ["http://www.myproviderguide.com/escorts/san-francisco/free-posts/w4m/5603792_sexy-ddd-squirter-babe.html","2014-04-03 07:35:15","2014-04-03 07:35:15"],
                 ["http://www.myproviderguide.com/escorts/san-francisco/free-posts/w4m/5603648_new-beautiful-smart-energetic-.html","2014-04-03 07:35:16","2014-04-03 07:35:16"]]
 
+# need to retrace these
+# ISTR_AD_URLS=["https://karmadigstorage.blob.core.windows.net/arch/istr_memex_small/20130924/bronx.backpage.com/FemaleEscorts/100-real-miss-coco-22/43748974"]
+
 def process_isi_images(urls=ISI_IMAGE_URLS):
     count = 0
     for cache_url in urls:
@@ -3360,7 +3384,7 @@ def process_isi_images(urls=ISI_IMAGE_URLS):
 # or 
 # ["http://www.myproviderguide.com/p/f0d4143f7773418d0b72484cb5ce628b.jpg","2014-06-10 17:48:33","2014-07-16 03:27:34","https://s3.amazonaws.com/roxyimages/d80a523daa921c678c4202b07f801dec14fca069.jpg"]
 
-def process_istr_images(urls=ISTR_IMAGE_URLS):
+def process_istr_images(urls=ISTR_IMAGE_URLS,printEvery=100,computeContentUrls=True):
     count = 0
     for (native_url,importtime,modtime,cache_url,source) in urls:
         try:
@@ -3383,10 +3407,11 @@ def process_istr_images(urls=ISTR_IMAGE_URLS):
             except:
                 pass
             isig = None
-            try:
-                isig = hashlib.sha1(downloadImage(cache_url)).hexdigest().upper()
-            except:
-                pass
+            if computeContentUrls:
+                try:
+                    isig = hashlib.sha1(downloadImage(cache_url)).hexdigest().upper()
+                except:
+                    pass
 
             memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
             content_url = "http://%s/image/%s-%s" % (host, isig, epoch)
@@ -3399,6 +3424,8 @@ def process_istr_images(urls=ISTR_IMAGE_URLS):
                       "sha1": sig,
                       "content_sha1": isig}
             count += 1
+            if printEvery and (count % printEvery == 0):
+                print count
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
     return count
@@ -3435,13 +3462,17 @@ def process_isi_ads(urls=ISI_AD_URLS):
             print >> sys.stderr, "Exception %r ignored" % e
     return count
 
-def process_istr_ads(urls=ISTR_AD_URLS):
+def process_istr_ads(urls=ISTR_AD_URLS, limit=sys.maxint):
     count = 0
     for (native_url,importtime,modtime,source) in urls:
         try:
             # datestamp = datestringToDatestamp(importtime)
             # cache_url = "https://karmadigstorage.blob.core.windows.net/arch/istr_memex_small/%s/%s" % (datestamp, native_url[7:])
             # our object ID uniquely identifies the source object
+
+            # SHOULD WE BE COMPUTING THE HASH CODES BASED ON
+            # http://
+            print native_url[7:]
             uid = hashlib.sha1(native_url[7:]).hexdigest().upper()
 
             # in general these might be distinct
@@ -3450,29 +3481,47 @@ def process_istr_ads(urls=ISTR_AD_URLS):
             datestamp = datestringToDatestamp(importtime)
             cache_url = "https://karmadigstorage.blob.core.windows.net/arch/istr_memex_small/%s/%s" % (datestamp, native_url[7:])
 
+            # epoch = None
+            # try:
+            #     epoch = datestringToEpoch(importtime)
+            #     print "epoch of importtime %s is %s" % (importtime, epoch)
+            # except Exception as e:
+            #     print "failed to convert importtime [%s]" % e
+            #     pass
+
+            # I think modtime => epoch is what we agreed on
             epoch = None
             try:
-                epoch = datestringToEpoch(importtime)
-            except:
+                epoch = datestringToEpoch(modtime)
+                # print "epoch of modtime %s is %s" % (modtime, epoch)
+            except Exception as e:
+                print "failed to convert modtime [%s]" % e
                 pass
+
 
             sig = None
             try:
                 sig = hashlib.sha1(native_url).hexdigest().upper()
+                print "sig of %s is %s" % (native_url, sig)
             except:
                 pass
 
             memex_url =  "http://%s/crawl/%s-%s" % (host, sig, epoch)
             d[uid] = {"native_url": native_url,
                       "cache_url": cache_url,
-                      "memex_url": memex_url,
+                      # "memex_url": memex_url,
                       "sha1": sig,
                       "epoch": epoch,
-                      "source": source}
+                      "source": source,
+                      "document_type": "page",
+                      "process_stage": "raw"}
             count += 1
         except Exception as e:
             print >> sys.stderr, "Exception %r ignored" % e
             raise
+        limit -= 1
+        if limit <= 0:
+            break
     return count
 
 def dumpBuild():
@@ -3485,3 +3534,5 @@ def dumpBuild2():
     with open('/tmp/build2.json','w') as f:
         for k,v in d.iteritems():
             print >> f, json.dumps({k: v}, sort_keys=True)
+
+process_istr_ads(load_ads())
